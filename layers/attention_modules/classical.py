@@ -30,14 +30,17 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
         factory_kwargs = {'device': device, 'dtype': dtype}
         qkv_mapping = LinearQKVmap(
             input_features=input_features,
-            attention_dimension=attention_dimension,
-            nhead=nhead,
+            q_features=attention_dimension,
+            k_features=attention_dimension,
+            v_features=attention_dimension,
             activation=None,
             bias=bias,
             **factory_kwargs)
 
         attention_mechanism = DotProductAttention(
-            attention_dimension=attention_dimension,
+            q_features=attention_dimension,
+            k_features=attention_dimension,
+            v_features=attention_dimension,
             mask=mask,
             **factory_kwargs)
 
@@ -58,7 +61,8 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
             qkv_mapping=qkv_mapping,
             attention_mechanism=attention_mechanism,
             head_reduction=head_reduction,
-            output_module=output_module
+            output_module=output_module,
+            nhead=nhead
         )
 
 
@@ -78,22 +82,23 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
         factory_kwargs = {'device': device, 'dtype': dtype}
         q_mapping = LinearQmap(
             input_features=input_features,
-            attention_dimension=attention_dimension,
-            nhead=nhead,
+            q_features=attention_dimension,
             activation=None,
             bias=bias,
             **factory_kwargs)
 
         kv_mapping = LinearKVmap(
             input_features=other_features,
-            attention_dimension=attention_dimension,
-            nhead=nhead,
+            k_features=attention_dimension,
+            v_features=attention_dimension,
             activation=None,
             bias=bias,
             **factory_kwargs)
 
         attention_mechanism = DotProductAttention(
-            attention_dimension=attention_dimension,
+            q_features=attention_dimension,
+            k_features=attention_dimension,
+            v_features=attention_dimension,
             mask=mask,
             **factory_kwargs)
 
@@ -115,5 +120,6 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
             kv_mapping=kv_mapping,
             attention_mechanism=attention_mechanism,
             head_reduction=head_reduction,
-            output_module=output_module
+            output_module=output_module,
+            nhead=nhead
         )

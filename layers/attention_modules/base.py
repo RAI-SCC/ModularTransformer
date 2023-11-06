@@ -1,3 +1,4 @@
+import copy
 import torch
 from torch.nn import Module
 
@@ -6,7 +7,6 @@ from .attention_mechanisms import AttentionModule
 from .head_reductions import HeadReduction
 from .output_modules import OutputModule
 
-from typing import Type, Optional, TypeVar
 from torch import Tensor
 
 
@@ -14,8 +14,6 @@ __all__ = [
     'SelfAttentionModule',
     'CrossAttentionModule',
 ]
-
-CLS = TypeVar('CLS')
 
 
 class SelfAttentionModule(Module):
@@ -25,9 +23,11 @@ class SelfAttentionModule(Module):
             attention_mechanism: AttentionModule,
             head_reduction: HeadReduction,
             output_module: OutputModule,
+            nhead: int = 1,
     ):
         super().__init__()
-        self.qkv_mapping = qkv_mapping
+        self._nhead = nhead
+        self.qkv_mappings = [copy.deepcopy(qkv_mapping) for _ in range(nhead)]
         self.attention_mechanism = attention_mechanism
         self.head_reduction = head_reduction
         self.output_module = output_module
@@ -43,14 +43,18 @@ class SelfAttentionModule(Module):
         return self.output_module.output_features
 
     def _check_validity(self):
-        assert self.qkv_mapping.attention_dimension == self.attention_mechanism.attention_dimension
-        assert self.qkv_mapping.nhead == self.head_reduction.nhead
-        assert self.qkv_mapping.k_features == self.head_reduction.attention_dimension
+        assert self.qkv_mappings[0].q_features == self.attention_mechanism.q_features
+        assert self.head_reduction.nhead == self._nhead
+        assert self.attention_mechanism.output_features == self.head_reduction.attention_dimension
         assert self.head_reduction.attention_output_features == self.output_module.attention_output_features
 
     def forward(self, input_: Tensor) -> Tensor:
-        q, k, v = self.qkv_mapping(input_)
-        attention_result = self.attention_mechanism(q, k, v)
+        head_results = []
+        for qkv_mapping in self.qkv_mappings:
+            q, k, v = qkv_mapping(input_)
+            head_results.append(self.attention_mechanism(q, k, v))
+
+        attention_result = torch.stack(head_results)
         output = self.output_module(self.head_reduction(attention_result))
         return output
 
@@ -63,10 +67,12 @@ class CrossAttentionModule(Module):
             attention_mechanism: AttentionModule,
             head_reduction: HeadReduction,
             output_module: OutputModule,
+            nhead: int = 1,
     ):
         super().__init__()
-        self.q_mapping = q_mapping
-        self.kv_mapping = kv_mapping
+        self._nhead = nhead
+        self.q_mappings = [copy.deepcopy(q_mapping) for _ in range(nhead)]
+        self.kv_mappings = [copy.deepcopy(kv_mapping) for _ in range(nhead)]
         self.attention_mechanism = attention_mechanism
         self.head_reduction = head_reduction
         self.output_module = output_module
@@ -86,17 +92,21 @@ class CrossAttentionModule(Module):
         return self.output_module.output_features
 
     def _check_validity(self):
-        assert self.q_mapping.attention_dimension == self.kv_mapping.attention_dimension
-        assert self.q_mapping.attention_dimension == self.attention_mechanism.attention_dimension
-        assert self.q_mapping.nhead == self.kv_mapping.nhead
-        assert self.q_mapping.nhead == self.head_reduction.nhead
-        assert self.kv_mapping.k_features == self.head_reduction.attention_dimension
+        assert self.q_mappings[0].q_features == self.attention_mechanism.q_features
+        assert self.kv_mappings[0].k_features == self.attention_mechanism.k_features
+        assert self.kv_mappings[0].v_features == self.attention_mechanism.v_features
+        assert self.head_reduction.nhead == self._nhead
+        assert self.attention_mechanism.output_features == self.head_reduction.attention_dimension
         assert self.head_reduction.attention_output_features == self.output_module.attention_output_features
 
     def forward(self, input_: Tensor, other: Tensor) -> Tensor:
-        q = self.q_mapping(input_)
-        k, v = self.kv_mapping(other)
-        attention_result = self.attention_mechanism(q, k, v)
+        head_results = []
+        for q_mapping, kv_mapping in zip(self.q_mappings, self.kv_mappings):
+            q = q_mapping(input_)
+            k, v = kv_mapping(other)
+            head_results.append(self.attention_mechanism(q, k, v))
+
+        attention_result = torch.stack(head_results)
         output = self.output_module(self.head_reduction(attention_result))
         return output
 
