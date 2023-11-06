@@ -1,0 +1,48 @@
+## ToDO:
+ - [ ] ***Documentation***
+   - [ ] **layers**
+     - [ ] **attention_modules**
+       - [ ] **attention_mechanisms**
+           - [ ] base.py
+           - [ ] dot_product.py
+       - [ ] **head_reductions**
+           - [ ] base.py
+           - [ ] concat.py
+       - [ ] **output_modules**
+           - [ ] base.py
+           - [ ] linear.py
+           - [ ] none.py
+       - [ ] **qkv_maps**
+           - [ ] base.py
+           - [ ] linear.py
+       - [ ] base.py
+       - [ ] classical.py
+     - [ ] base.py
+     - [ ] classical.py
+   - [ ] README.md
+   - [ ] Transformer base.py
+   - [ ] Transformer classical.py
+
+ - [ ] ***Tests***
+   - [ ] **layers**
+     - [ ] **attention_modules**
+       - [ ] **attention_mechanisms**
+           - [ ] base.py
+           - [ ] dot_product.py
+       - [ ] **head_reductions**
+           - [ ] base.py
+           - [ ] concat.py
+       - [ ] **output_modules**
+           - [ ] base.py
+           - [ ] linear.py
+           - [ ] none.py
+       - [ ] **qkv_maps**
+           - [ ] base.py
+           - [ ] linear.py
+       - [ ] base.py
+       - [ ] classical.py
+     - [ ] base.py
+     - [ ] classical.py
+   - [ ] README.md
+   - [ ] Transformer base.py
+   - [ ] Transformer classical.py
