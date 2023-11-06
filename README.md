@@ -1,3 +1,20 @@
+This documentation is ordered based on submodules, which reflect the model structure.
+
+## Transformer
+
+### layers
+
+#### attention_modules
+
+##### attention_mechanisms
+
+##### head_reductions
+
+##### output_modules
+
+##### qkv_maps
+
+
 ## ToDO:
  - [ ] ***Documentation***
    - [ ] **layers**
@@ -13,7 +30,7 @@
            - [ ] linear.py
            - [ ] none.py
        - [ ] **qkv_maps**
-           - [ ] base.py
+           - [x] base.py
            - [ ] linear.py
        - [ ] base.py
        - [ ] classical.py
