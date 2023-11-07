@@ -25,7 +25,7 @@ class Qmap(Module, ABC):
         :param input_features int: number of input nodes and size of the feature dimension of the intended input
         :param q_features int: number of output features
         :param device Optional[torch.device]: computation device the module is initialized on
-        :param device Optional[torch.dtype]: data type of the module
+        :param dtype Optional[torch.dtype]: data type of the module
     The super.__init__ call should be done at the end of the __init__ method.
 
     Two 'Qmap's can be added yielding a KVmap, where the first argument becomes the K-component and the second the
@@ -114,7 +114,7 @@ class KVmap(Module, ABC):
         :param k_features int: number of output features of the k-component (i.e. first) output
         :param v_features Optional[int]: number of output features of the v-component (i.e. second) output (default: k_features)
         :param device Optional[torch.device]: computation device the module is initialized on
-        :param device Optional[torch.dtype]: data type of the module
+        :param dtype Optional[torch.dtype]: data type of the module
     The super.__init__ call should be done at the end of the __init__ method.
 
     'KVmap's can be created from 'Qmap's via adding or the as_KVmap method. See the Qmap class for details.
@@ -164,7 +164,7 @@ class QKVmap(Module, ABC):
         :param k_features Optional[int]: number of output features of the k-component (i.e. second) output (default: q_features)
         :param v_features Optional[int]: number of output features of the v-component (i.e. third) output (default: k_features)
         :param device Optional[torch.device]: computation device the module is initialized on
-        :param device Optional[torch.dtype]: data type of the module
+        :param dtype Optional[torch.dtype]: data type of the module
     The super.__init__ call should be done at the end of the __init__ method.
 
     'QKVmap's can be created from the sum of a Qmap and a KVmap or the Qmap.as_QKVmap method. See the Qmap class for details.
