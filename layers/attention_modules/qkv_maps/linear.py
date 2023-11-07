@@ -13,6 +13,19 @@ __all__ = [
 
 
 class LinearQmap(Qmap):
+    """
+    Default q_mapping using a single torch.nn.Linear layer
+
+    Parameters
+        :param input_features int: number of input nodes and size of the feature dimension of the intended input
+        :param q_features int: number of output features
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+        :param activation Optional[Union[Module, str]]: output activation function (default: None)
+        :param bias bool: If set to False, the layer will not learn an additive bias (default: True)
+
+    :return Tensor:
+    """
     def __init__(
             self,
             input_features: int,
@@ -39,6 +52,23 @@ class LinearQmap(Qmap):
 
 
 class LinearKVmap(KVmap):
+    """
+    Default kv_mapping using a single torch.nn.Linear layer
+
+    Slight efficiency increase via obtaining k and v from one layer with their combined output features.
+
+    Parameters
+        :param input_features int: number of input nodes and size of the feature dimension of the intended input
+        :param k_features int: number of output features of the k-component (i.e. first) output
+        :param v_features Optional[int]: number of output features of the v-component (i.e. second) output (default: k_features)
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+        :param activation Optional[Union[Module, str]]: output activation function (default: None)
+        :param bias bool: If set to False, the layer will not learn an additive bias (default: True)
+
+    :return Tensor, Tensor:
+    """
+
     def __init__(
             self,
             input_features: int,
@@ -69,6 +99,24 @@ class LinearKVmap(KVmap):
 
 
 class LinearQKVmap(QKVmap):
+    """
+    Default qkv_mapping using a single torch.nn.Linear layer
+
+    Slight efficiency increase via obtaining q, k, and v from one layer with their combined output features.
+
+    Parameters
+        :param input_features int: number of input nodes and size of the feature dimension of the intended input
+        :param q_features int: number of output features of the q-component (i.e. first) output
+        :param k_features Optional[int]: number of output features of the k-component (i.e. second) output (default: q_features)
+        :param v_features Optional[int]: number of output features of the v-component (i.e. third) output (default: k_features)
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+        :param activation Optional[Union[Module, str]]: output activation function (default: None)
+        :param bias bool: If set to False, the layer will not learn an additive bias (default: True)
+
+    :return Tensor:
+    """
+
     def __init__(
             self,
             input_features: int,

@@ -81,9 +81,9 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
            - [ ] base.py
            - [ ] linear.py
            - [ ] none.py
-       - [ ] **qkv_maps**
+       - [x] **qkv_maps**
            - [x] base.py
-           - [ ] linear.py
+           - [x] linear.py
        - [ ] base.py
        - [ ] classical.py
      - [ ] base.py
