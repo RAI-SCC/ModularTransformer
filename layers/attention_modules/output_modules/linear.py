@@ -15,6 +15,8 @@ class LinearOutputModule(OutputModule):
     """
     A simple single layer output module with optional activation
 
+    Commonly used to reduce the nhead * dmodel output features of classical multihead attention back to dmodel
+
     Parameters
         :param attention_output_features int: number of input nodes and size of the feature dimension of the intended input
         :param output_features int: number of output features (default: attention_output_features)

@@ -33,7 +33,8 @@ The `super.__init__` call should be done last.
 
 **Currently available classes**
 
-    LinearOutputModule: a simple single layer output module with optional activation
+    LinearOutputModule: a simple single layer output module with optional activation, commonly used to reduce the
+      nhead * dmodel output features of classical multihead attention back to dmodel
 
       Additional arguments:
         activation Optional[Module or str]: output activation function (default: None)
