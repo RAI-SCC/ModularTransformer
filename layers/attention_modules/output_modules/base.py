@@ -36,6 +36,7 @@ class OutputModule(Module, ABC):
         self._check_validity()
 
     def _check_validity(self) -> None:
+        """Checks the consistency of the module. Should be implemented by subclasses, if needed."""
         pass
 
     @abstractmethod

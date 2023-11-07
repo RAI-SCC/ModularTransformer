@@ -14,12 +14,35 @@ arguments.
 ##### attention_mechanisms
 
 ##### head_reductions
+`HeadReduction`s merge the heads of multihead attention. For almost all architectures this will be `ConcatHeads`, but
+this also allows implementing layers with head interaction.
+This class is a thin wrapper around torch.nn.Module defining a consistent interface. Each derived class should be
+initialized with the arguments:
+
+    attention_dimension int: size of the input feature dimension
+    nhead int: number of attention heads and size of the input head dimension
+
+    device Optional[torch.device]: computation device the module is initialized on
+    dtype Optional[torch.dtype]: data type of the module
+    
+    **kwargs: Any number of class specific keyword arguments
+The `super.__init__` call should be done last, in the `__init__` of child classes.
+Each child class needs to implement `attention_output_features`, which provides the number of output_features for
+consistency checks.
+
+**Currently available classes**
+
+    ConcatHeads: collapses the head dimension by concatenating all features, default approach for most attention architectures
+
+      Additional arguments:
+        None    
+
 
 ##### output_modules
 `OutputModule`s can be any torch.nn.Module that takes one input Tensor and provides an output Tensor of the same
 shape except (possibly) in the last dimension.
-It is a thin wrapper around torch.nn.Module defining a consistent interface. Each derived class should be initialized
-with the arguments:
+This class is a thin wrapper around torch.nn.Module defining a consistent interface. Each derived class should be 
+initialized with the arguments:
 
     attention_output_features int: number of input nodes and size of the feature dimension of the intended input
     output_features int: number of output features (default: attention_output_features)
@@ -29,7 +52,7 @@ with the arguments:
 
     **kwargs: Any number of class specific keyword arguments
 
-The `super.__init__` call should be done last.
+The `super.__init__` call should be done last, in the `__init__` of child classes.
 
 **Currently available classes**
 
@@ -95,7 +118,7 @@ Each derived class should be initialized with the arguments:
 
 `Qmap`s do not require `k_features` and `v_features` and `KVmap`s do not require `q_features`. Since these features are
 typically identical `v_features` defaults to the value of `k_features`, which for the `QKVmap` defaults to `q_features`.
-The `super.__init__` call should be done last.
+The `super.__init__` call should be done last, in the `__init__` of child classes.
 
 **Currently available classes:**
 
@@ -116,9 +139,9 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
        - [ ] **attention_mechanisms**
            - [ ] base.py
            - [ ] dot_product.py
-       - [ ] **head_reductions**
-           - [ ] base.py
-           - [ ] concat.py
+       - [x] **head_reductions**
+           - [x] base.py
+           - [x] concat.py
        - [x] **output_modules**
            - [x] base.py
            - [x] linear.py
