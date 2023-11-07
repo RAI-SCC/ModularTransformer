@@ -27,7 +27,7 @@ respectively.
 This is taken into account by enabling adding two `Qmap`s to obtain a `KVmap` or equivalently combining them in a
 `CompositeKVmap`.
 Furthermore, a `Qmap` and a `KVmap` can be added to obtain a `QKVmap` or combined in a `CompositeQKVmap`.\
-Note, that the commuted version, adding a `KVmap` to a `Qmap`, is intentionally disabled.
+Note, that the commuted version, adding a `KVmap` to a `Qmap` is intentionally disabled.
 This is because adding `Qmap` + `Qmap` + `Qmap` it is intuitive that the three are q_map, k_map, v_map in that order.
 However, since the first addition is performed first, it becomes `KVmap` + `Qmap` and therefore the actual order would
 be k_map, v_map, q_map.
@@ -81,9 +81,9 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
            - [ ] base.py
            - [ ] linear.py
            - [ ] none.py
-       - [x] **qkv_maps**
+       - [ ] **qkv_maps**
            - [x] base.py
-           - [x] linear.py
+           - [ ] linear.py
        - [ ] base.py
        - [ ] classical.py
      - [ ] base.py
