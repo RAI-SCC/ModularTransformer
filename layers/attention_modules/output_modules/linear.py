@@ -12,6 +12,17 @@ __all__ = [
 
 
 class LinearOutputModule(OutputModule):
+    """
+    A simple single layer output module with optional activation
+
+    Parameters
+        :param attention_output_features int: number of input nodes and size of the feature dimension of the intended input
+        :param output_features int: number of output features (default: attention_output_features)
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+        :param activation Optional[Union[Module, str]]: output activation function (default: None)
+        :param bias bool: If set to False, the layer will not learn an additive bias (default: True)
+    """
     def __init__(
             self,
             attention_output_features: int,
@@ -39,6 +50,21 @@ class LinearOutputModule(OutputModule):
 
 
 class DoubleLinearOutputModule(OutputModule):
+    """
+    A two layer output module with optional activation after the first layer
+
+    Commonly used as "feedforward layer" in the classical Transformer architecture
+
+    Parameters
+        :param attention_output_features int: number of input nodes and size of the feature dimension of the intended input
+        :param output_features int: number of output features (default: attention_output_features)
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+        :param dim_feedforward int: dimension of the hidden layer (default: 1024)
+        :param activation Optional[Union[Module, str]]: intermediate activation function (default: ReLU())
+        :param bias bool: If set to False, the layer will not learn an additive bias (default: True)
+    """
+
     def __init__(
             self,
             attention_output_features: int,

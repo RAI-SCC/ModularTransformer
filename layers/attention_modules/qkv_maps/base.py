@@ -26,7 +26,7 @@ class Qmap(Module, ABC):
         :param q_features int: number of output features
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
-    The super.__init__ call should be done at the end of the __init__ method.
+    The super.__init__ call should be done at the end of the __init__ method of child classes.
 
     Two 'Qmap's can be added yielding a KVmap, where the first argument becomes the K-component and the second the
     V-component. Similarly, Qmap + KVmap = QKVmap. KVmap + Qmap is intentionally disabled, since it would enable
@@ -115,7 +115,7 @@ class KVmap(Module, ABC):
         :param v_features Optional[int]: number of output features of the v-component (i.e. second) output (default: k_features)
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
-    The super.__init__ call should be done at the end of the __init__ method.
+    The super.__init__ call should be done at the end of the __init__ method of child classes.
 
     'KVmap's can be created from 'Qmap's via adding or the as_KVmap method. See the Qmap class for details.
     Note that, while convenient, it is usually slightly more efficient to implement dedicated KVmaps.
@@ -165,7 +165,7 @@ class QKVmap(Module, ABC):
         :param v_features Optional[int]: number of output features of the v-component (i.e. third) output (default: k_features)
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
-    The super.__init__ call should be done at the end of the __init__ method.
+    The super.__init__ call should be done at the end of the __init__ method of child classes.
 
     'QKVmap's can be created from the sum of a Qmap and a KVmap or the Qmap.as_QKVmap method. See the Qmap class for details.
     Note that, while convenient, it is usually slightly more efficient to implement dedicated QKVmaps.

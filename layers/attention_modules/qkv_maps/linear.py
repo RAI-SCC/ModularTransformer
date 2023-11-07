@@ -114,7 +114,7 @@ class LinearQKVmap(QKVmap):
         :param activation Optional[Union[Module, str]]: output activation function (default: None)
         :param bias bool: If set to False, the layer will not learn an additive bias (default: True)
 
-    :return Tensor:
+    :return Tensor, Tensor, Tensor:
     """
 
     def __init__(

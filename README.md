@@ -1,5 +1,10 @@
 This documentation is ordered based on submodules, which reflect the model structure.
 
+This package uses automatic string parsing. In many places activation functions or other modules can be replaced with
+their name as string. If the named class is defined in the standard location for the object class (e.g. torch.nn for
+activation functions or qkv_maps for `Qmap`s) an instance of the class will be automatically created with the default
+arguments.
+
 ## Transformer
 
 ### layers
@@ -11,9 +16,47 @@ This documentation is ordered based on submodules, which reflect the model struc
 ##### head_reductions
 
 ##### output_modules
+`OutputModule`s can be any torch.nn.Module that takes one input Tensor and provides an output Tensor of the same
+shape except (possibly) in the last dimension.
+It is a thin wrapper around torch.nn.Module defining a consistent interface. Each derived class should be initialized
+with the arguments:
+
+    attention_output_features int: number of input nodes and size of the feature dimension of the intended input
+    output_features int: number of output features (default: attention_output_features)
+
+    device Optional[torch.device]: computation device the module is initialized on
+    dtype Optional[torch.dtype]: data type of the module
+
+    **kwargs: Any number of class specific keyword arguments
+
+The `super.__init__` call should be done last.
+
+**Currently available classes**
+
+    LinearOutputModule: a simple single layer output module with optional activation
+
+      Additional arguments:
+        activation Optional[Module or str]: output activation function (default: None)
+        bias bool: If set to False, the layer will not learn an additive bias (default: True)
+
+
+    DoubleLinearOutputModule: A two layer output module with optional activation after the first layer, commonly used as
+      "feedforward layer" in the classical Transformer architecture.
+
+      Additional arguments:
+        dim_feedforward int: dimension of the hidden layer (default: 1024)
+        activation Optional[Module or str]: intermediate activation function (default: ReLu())
+        bias bool: If set to False, the layer will not learn an additive bias (default: True)
+
+
+    NoModule: used when no OutputModule is required, simply assert matching dimension during initialization and forwards
+      the input
+
+      Additional arguments:
+        None
 
 ##### qkv_maps
-Thq purpose of `qkv_maps` is taking an input and producing query (*q*), key (*k*), and value (*v*) for the attention
+The purpose of `qkv_maps` is taking an input and producing query (*q*), key (*k*), and value (*v*) for the attention
 mechanism from them.
 Since this works slightly differently for cross- and self-attention there are a total of three (related) classes to
 accomplish this.
@@ -41,28 +84,26 @@ Each derived class should be initialized with the arguments:
     input_features int: number of input nodes and size of the feature dimension of the intended input
 
     q_features int: number of output features of the q-component output
-
     k_features int: number of output features of the k-component output (default: q_features)
-
     v_features int: number of output features of the v-component output (default: k_features)
 
     device Optional[torch.device]: computation device the module is initialized on
-  
     dtype Optional[torch.dtype]: data type of the module
 
     **kwargs: Any number of class specific keyword arguments
 
 `Qmap`s do not require `k_features` and `v_features` and `KVmap`s do not require `q_features`. Since these features are
 typically identical `v_features` defaults to the value of `k_features`, which for the `QKVmap` defaults to `q_features`.
+The `super.__init__` call should be done last.
 
 **Currently available classes:**
 
 Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QKVmap` with the naming convention 
 [name]Q/KVmap (e.g. `LinearQmap`, `LinearKVmap`, and `LinearQKVmap`)
 
-    `Linear`: single torch.nn.Linear layer mapping from input to output
+    Linear: single torch.nn.Linear layer mapping from input to output
 
-      Additional arguments
+      Additional arguments:
         activation Optional[Module or str]: output activation function (default: None)
         bias bool: If set to False, the layer will not learn an additive bias (default: True)
   
@@ -77,10 +118,10 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
        - [ ] **head_reductions**
            - [ ] base.py
            - [ ] concat.py
-       - [ ] **output_modules**
-           - [ ] base.py
-           - [ ] linear.py
-           - [ ] none.py
+       - [x] **output_modules**
+           - [x] base.py
+           - [x] linear.py
+           - [x] none.py
        - [x] **qkv_maps**
            - [x] base.py
            - [x] linear.py
