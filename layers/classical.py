@@ -4,6 +4,7 @@ from torch.nn import ReLU
 from .base import TransformerEncoderLayer, TransformerDecoderLayer
 from .attention_modules import ClassicalSelfAttentionModule, ClassicalCrossAttentionModule
 from .attention_modules.output_modules import DoubleLinearOutputModule
+from .attention_modules.attention_mechanisms.masking import AttentionMatrixMask
 
 from typing import Optional, Union, Callable
 from torch import Tensor
@@ -22,7 +23,7 @@ class ClassicalTransformerEncoderLayer(TransformerEncoderLayer):
             nhead: int,
             dim_feedforward: int,
             output_features: int,
-            mask: Optional[Tensor] = None,
+            mask: Optional[Union[AttentionMatrixMask, str]] = None,
             bias: bool = True,
             layer_norm: bool = True,
             dropout: float = 0.,
@@ -67,7 +68,7 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
             nhead: int,
             dim_feedforward: int,
             output_features: int,
-            mask: Optional[Tensor] = None,
+            mask: Optional[Union[AttentionMatrixMask, str]] = None,
             bias: bool = True,
             layer_norm: bool = True,
             dropout: float = 0.,
@@ -82,7 +83,7 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
             attention_dimension=attention_dimension,
             nhead=nhead,
             output_features=input_features,
-            mask=None,
+            mask=mask,
             bias=bias,
             **factory_kwargs)
 
@@ -92,7 +93,7 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
             attention_dimension=attention_dimension,
             nhead=nhead,
             output_features=input_features,
-            mask=mask,
+            mask=None,
             bias=bias,
             **factory_kwargs)
 

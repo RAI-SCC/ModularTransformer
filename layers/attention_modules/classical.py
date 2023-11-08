@@ -5,8 +5,9 @@ from .qkv_maps import LinearQmap, LinearKVmap, LinearQKVmap
 from .attention_mechanisms import DotProductAttention
 from .head_reductions import ConcatHeads
 from .output_modules import LinearOutputModule
+from .attention_mechanisms.masking import AttentionMatrixMask
 
-from typing import Optional
+from typing import Optional, Union
 from torch import Tensor
 
 __all__ = [
@@ -22,7 +23,7 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
             attention_dimension: int,
             nhead: int,
             output_features: int,
-            mask: Optional[Tensor] = None,
+            mask: Optional[Union[AttentionMatrixMask, str]] = None,
             bias: bool = True,
             device: Optional[torch.device] = None,
             dtype: Optional[torch.dtype] = None
@@ -39,7 +40,6 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
 
         attention_mechanism = DotProductAttention(
             q_features=attention_dimension,
-            k_features=attention_dimension,
             v_features=attention_dimension,
             mask=mask,
             **factory_kwargs)
@@ -74,7 +74,7 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
             attention_dimension: int,
             nhead: int,
             output_features: int,
-            mask: Optional[Tensor] = None,
+            mask: Optional[Union[AttentionMatrixMask, str]] = None,
             bias: bool = True,
             device: Optional[torch.device] = None,
             dtype: Optional[torch.dtype] = None
@@ -97,7 +97,6 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
 
         attention_mechanism = DotProductAttention(
             q_features=attention_dimension,
-            k_features=attention_dimension,
             v_features=attention_dimension,
             mask=mask,
             **factory_kwargs)

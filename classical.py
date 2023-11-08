@@ -4,6 +4,7 @@ from torch.nn import Softmax, ReLU
 from .base import Transformer
 from .layers import ClassicalTransformerEncoderLayer, ClassicalTransformerDecoderLayer
 from .layers.attention_modules.output_modules import LinearOutputModule
+from .layers.attention_modules.attention_mechanisms.masking import AttentionMatrixMask
 
 from typing import Optional, Union, Callable
 from torch import Tensor
@@ -22,8 +23,8 @@ class ClassicalTransformer(Transformer):
             output_features: Optional[int] = None,
             inter_activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = ReLU(),
             final_activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = Softmax(),
-            encoder_mask: Optional[Tensor] = None,
-            decoder_mask: Optional[Tensor] = None,
+            encoder_mask: Optional[Union[AttentionMatrixMask, str]] = None,
+            decoder_mask: Optional[Union[AttentionMatrixMask, str]] = None,
             bias: bool = True,
             layer_norm: bool = True,
             dropout: float = 0.,
