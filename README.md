@@ -9,6 +9,61 @@ arguments.
 
 ### layers
 
+This module defines the template for encoder and decoder layers. It contains the classes `TransformerEncoderLayer` and 
+`TransformerDecoderLayer`, which can be used to create them from components als well as prebuilt classes for specific variants.
+
+It optionally adds the residual connections, layer norm and dropout to each components
+
+**Template classes**
+
+These combine the separate components into the appropriate module and also provide the forward function und perform
+consistency checks. The components all come from submodules and their syntax and purpose is described below.
+
+    TransformerEncoderLayer
+      Arguments:
+        self_attention_layer SelfAttentionModule: the self-attention block
+        output_layer OutputModule: the output or feedforward layer
+        residual_connection bool: If False there are no residual connections around attention block and output module (default: True)
+        layer_norm bool: if False, no layer norm is applied after each sublayer (default: True)
+        dropout float: dropout rate on the output of each sublayer (default: 0.)
+        device Optional[torch.device]: computation device the module is initialized on
+        dtype Optional[torch.dtype]: data type of the module
+
+    TransformerDecoderLayer
+      Arguments:
+        self_attention_layer SelfAttentionModule: the self-attention block
+        cross_attention_layer CrossAttentionModule: the cross-attention block
+        output_layer OutputModule: the output or feedforward layer
+        residual_connection bool: If False there are no residual connections around attention block and output module (default: True)
+        layer_norm bool: if False, no layer norm is applied after each sublayer (default: True)
+        dropout float: dropout rate on the output of each sublayer (default: 0.)
+        device Optional[torch.device]: computation device the module is initialized on
+        dtype Optional[torch.dtype]: data type of the module
+
+**Other available classes**
+
+These implement specific variants of self- and cross-attention. Typically, each variant implements a `EncoderLayer` and 
+a `DecoderLayer` with the same prefix (e.g. `ClassicalTransformerEncoderLayer` and `ClassicalTransformerDecoderLayer`).
+Classes are listed by prefix, and unless otherwise specified both accept the same arguments except that
+`EncoderLayer`s never require `other_features`.
+
+    ClassicalTransformer:
+      Arguments:
+        input_features int: size of the (first) input feature dimension
+        other_features int: size of the other (second) input feature dimension
+        d_model int: internal number of features for the attention mechanism
+        nhead int: number of attention heads
+        dim_feedforward int: size of the hidden layer of the `DoubleLinearOutputModule` (feedforward layer)
+        output_features int: size of the output feature dimension
+        mask Optional[AttentionMatrixMask or str]: mask for masked attention (default: None)
+        bias bool: If set to False, all Linear layers will not learn an additive bias (default: True)
+        layer_norm bool: if False not layernorm will be apllied after attention and output module (default: True)
+        dropout float: dropout rate applied on the output of attention and output module (default: 0.)
+        activation Optional[str or Callable[[Tensor], Tensor]]: activation of the `DoubleLinearOutputModule` (default: ReLU())
+        device Optional[torch.device]: computation device the module is initialized on
+        dtype Optional[torch.dtype]: data type of the module
+
+
 #### attention_modules
 
 This module defines the template for self- and cross-attention blocks. It contains the classes `SelfAttentionModule` and 
@@ -232,7 +287,7 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
 
 ## ToDo:
  - [ ] ***Documentation***
-   - [ ] **layers**
+   - [x] **layers**
      - [x] **attention_modules**
        - [x] **attention_mechanisms**
          - [x] **masking**
@@ -252,8 +307,8 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
            - [x] linear.py
        - [x] base.py
        - [x] classical.py
-     - [ ] base.py
-     - [ ] classical.py
+     - [x] base.py
+     - [x] classical.py
    - [ ] README.md
    - [ ] Transformer base.py
    - [ ] Transformer classical.py

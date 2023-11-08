@@ -25,8 +25,8 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
         :param d_model int: internal number of features for the attention mechanism
         :param nhead int: number of attention heads
         :param output_features int: size of the output feature dimension
-        :param mask Optional[Union[AttentionMatrixMask, str]]: mask for masked attention (default: None)
-        :param bias bool: If set to False, the DoubleLinearOutputModule will not learn an additive bias (default: True)
+        :param mask Optional[AttentionMatrixMask or str]: mask for masked attention (default: None)
+        :param bias bool: If set to False, all Linear layers will not learn an additive bias (default: True)
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
     """
@@ -89,8 +89,8 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
         :param d_model int: internal number of features for the attention mechanism
         :param nhead int: number of attention heads
         :param output_features int: size of the output feature dimension
-        :param mask Optional[Union[AttentionMatrixMask, str]]: mask for masked attention (default: None)
-        :param bias bool: If set to False, the DoubleLinearOutputModule will not learn an additive bias (default: True)
+        :param mask Optional[AttentionMatrixMask or str]: mask for masked attention (default: None)
+        :param bias bool: If set to False, all Linear layers will not learn an additive bias (default: True)
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
     """

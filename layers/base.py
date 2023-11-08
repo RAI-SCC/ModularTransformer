@@ -14,6 +14,24 @@ __all__ = [
 
 
 class TransformerEncoderLayer(Module):
+    """
+    Provides the basic structure for a Transformer encoder layer
+
+    Combines a `SelfAttentionModule` and an `OutputModule` into an encoder layer.
+    Also includes and gives control over residual connections, layer norms and dropout.
+    Also ensures consistency of the components (e.g. that input and output features of attention block and output module
+    are equal if there are residual connections.
+
+    Parameters
+        :param self_attention_layer SelfAttentionModule: the self-attention block
+        :param output_layer OutputModule: the output or feedforward layer
+        :param residual_connection bool: If False there are no residual connections around attention block and output
+            module (default: True)
+        :param layer_norm bool: if False, no layer norm is applied after each sublayer (default: True)
+        :param dropout float: dropout rate on the output of each sublayer (default: 0.)
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+    """
     def __init__(
             self,
             self_attention_layer: SelfAttentionModule,
@@ -42,6 +60,7 @@ class TransformerEncoderLayer(Module):
         self._check_validity()
 
     def _check_validity(self) -> None:
+        """Checks consistency of the model"""
         assert self.self_attention_layer.output_features == self.output_layer.attention_output_features
 
         if self.residual_connection:
@@ -57,6 +76,7 @@ class TransformerEncoderLayer(Module):
         return self.output_layer.output_features
 
     def forward(self, input_: Tensor) -> Tensor:
+        """Applies the encoder layer"""
         # Self attention
         x = self.self_attention_layer(input_)
         if self.residual_connection:
@@ -78,6 +98,25 @@ class TransformerEncoderLayer(Module):
 
 
 class TransformerDecoderLayer(Module):
+    """
+    Provides the basic structure for a Transformer decoder layer
+
+    Combines a `SelfAttentionModule`, a `CrossAttentionModule`, and an `OutputModule` into a decoder layer.
+    Also includes and gives control over residual connections, layer norms and dropout.
+    Also ensures consistency of the components (e.g. that input and output features of attention block and output module
+    are equal if there are residual connections.
+
+    Parameters
+        :param self_attention_layer SelfAttentionModule: the self-attention block
+        :param cross_attention_layer CrossAttentionModule: the cross-attention block
+        :param output_layer OutputModule: the output or feedforward layer
+        :param residual_connection bool: If False there are no residual connections around attention block and output
+            module (default: True)
+        :param layer_norm bool: if False, no layer norm is applied after each sublayer (default: True)
+        :param dropout float: dropout rate on the output of each sublayer (default: 0.)
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+    """
     def __init__(
             self,
             self_attention_layer: SelfAttentionModule,
@@ -109,6 +148,7 @@ class TransformerDecoderLayer(Module):
         self._check_validity()
 
     def _check_validity(self) -> None:
+        """Checks consistency of the model"""
         assert self.self_attention_layer.output_features == self.cross_attention_layer.input_features
         assert self.cross_attention_layer.output_features == self.output_layer.attention_output_features
 
@@ -130,6 +170,7 @@ class TransformerDecoderLayer(Module):
         return self.output_layer.output_features
 
     def forward(self, input_: Tensor, other: Tensor) -> Tensor:
+        """Performs a decoder layer with the decoder input `input_` and hidden state `other`"""
         # Self-attention
         x = self.self_attention_layer(input_)
         if self.residual_connection:

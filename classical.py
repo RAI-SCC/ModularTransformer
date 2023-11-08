@@ -38,7 +38,7 @@ class ClassicalTransformer(Transformer):
 
         encoder_layer = ClassicalTransformerEncoderLayer(
             input_features=input_features,
-            attention_dimension=attention_dimension,
+            d_model=attention_dimension,
             nhead=nhead,
             dim_feedforward=dim_feedforward,
             output_features=hidden_features,
