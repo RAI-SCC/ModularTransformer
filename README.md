@@ -11,13 +11,61 @@ arguments.
 
 #### attention_modules
 
+
 ##### attention_mechanisms
 
+`AttentionModule`s represent the attention mechanism of a Transformer and should be head independent.
+This class is a thin wrapper around torch.nn.Module defining a consistent interface.
+Most importantly, the `forward` method requires three inputs (query, key, and value) and provides one output.
+Each derived class should be initialized with the arguments:
+
+    q_features int: number of features of the q-component (i.e. first) input
+    k_features Optional[int]: number of features of the k-component (i.e. second) input (default: q_features)
+    v_features Optional[int]: number of features of the v-component (i.e. third) input (default: k_features)
+
+    device Optional[torch.device]: computation device the module is initialized on
+    dtype Optional[torch.dtype]: data type of the module
+    
+    **kwargs: Any number of class specific keyword arguments
+
+The `super.__init__` call should be done last, in the `__init__` of child classes.
+Each child class needs to implement `attention_output_features`, which provides the number of output_features for
+consistency checks.
+
+**Currently available classes**
+
+    DotProductAttention: classical dot product attention mechanism (Vaswani et al 17) with optional mask
+
+      Additional arguments:
+        mask Optional[AttentionMatrixMask or str]: mask for masked attention (default: None)
+      Since q_features == v_features for this mechanism, v_features is ignored and inferred.
+
+
+###### masking
+
+This module contains mask classes. Since various `AttentionModule`s might have different, incompatible ways of masking
+there might be multiple class groups.
+The main masking approach applies to `AttentionModule`s that create an attention matrix, where certain values are masked.
+These masks are represented by `AttentionMatrixMask`s as base class and only share and require the `apply_to` method,
+which accepts the attention matrix and returns a masked version of it.
+
+The most common mask is `TriangularMask`, which limits the n-th output step of a sequence to consider only the first n
+steps of the input sequence.
+
+**Currently available classes**
+
+    TriangularMask: works as the standard mask blocking 'future' information
+
+      Additional arguments:
+        None
+
+
 ##### head_reductions
+
 `HeadReduction`s merge the heads of multihead attention. For almost all architectures this will be `ConcatHeads`, but
 this also allows implementing layers with head interaction.
-This class is a thin wrapper around torch.nn.Module defining a consistent interface. Each derived class should be
-initialized with the arguments:
+This class is a thin wrapper around torch.nn.Module defining a consistent interface.
+Each derived class should be initialized with the arguments:
 
     attention_dimension int: size of the input feature dimension
     nhead int: number of attention heads and size of the input head dimension
@@ -26,6 +74,7 @@ initialized with the arguments:
     dtype Optional[torch.dtype]: data type of the module
     
     **kwargs: Any number of class specific keyword arguments
+
 The `super.__init__` call should be done last, in the `__init__` of child classes.
 Each child class needs to implement `attention_output_features`, which provides the number of output_features for
 consistency checks.
@@ -39,10 +88,11 @@ consistency checks.
 
 
 ##### output_modules
+
 `OutputModule`s can be any torch.nn.Module that takes one input Tensor and provides an output Tensor of the same
 shape except (possibly) in the last dimension.
-This class is a thin wrapper around torch.nn.Module defining a consistent interface. Each derived class should be 
-initialized with the arguments:
+This class is a thin wrapper around torch.nn.Module defining a consistent interface.
+Each derived class should be initialized with the arguments:
 
     attention_output_features int: number of input nodes and size of the feature dimension of the intended input
     output_features int: number of output features (default: attention_output_features)
@@ -79,7 +129,9 @@ The `super.__init__` call should be done last, in the `__init__` of child classe
       Additional arguments:
         None
 
+
 ##### qkv_maps
+
 The purpose of `qkv_maps` is taking an input and producing query (*q*), key (*k*), and value (*v*) for the attention
 mechanism from them.
 Since this works slightly differently for cross- and self-attention there are a total of three (related) classes to
@@ -136,9 +188,12 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
  - [ ] ***Documentation***
    - [ ] **layers**
      - [ ] **attention_modules**
-       - [ ] **attention_mechanisms**
-           - [ ] base.py
-           - [ ] dot_product.py
+       - [x] **attention_mechanisms**
+         - [x] **masking**
+           - [x] base.py
+           - [x] triangular.py
+         - [x] base.py
+         - [x] dot_product.py
        - [x] **head_reductions**
            - [x] base.py
            - [x] concat.py
@@ -163,6 +218,9 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
    - [ ] **layers**
      - [ ] **attention_modules**
        - [ ] **attention_mechanisms**
+         - [ ] **masking**
+           - [ ] base.py
+           - [ ] triangular.py
            - [ ] base.py
            - [ ] dot_product.py
        - [ ] **head_reductions**

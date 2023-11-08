@@ -20,7 +20,7 @@ class DotProductAttention(AttentionModule):
     Parameters
         :param q_features int: number of features of the q- and k-component (i.e. first and second) input
         :param v_features Optional[int]: number of features of the v-component (i.e. third) input (default: q_features)
-        :param mask Optional[AttentionMatrixMask]: mask for masked attention (default
+        :param mask Optional[AttentionMatrixMask]: mask for masked attention (default: None)
     """
     def __init__(
             self,
