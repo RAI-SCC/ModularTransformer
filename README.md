@@ -11,6 +11,52 @@ arguments.
 
 #### attention_modules
 
+This module defines the template for self- and cross-attention blocks. It contains the classes `SelfAttentionModule` and 
+`CrossAttentionModule`, which can be used to create them from components als well as prebuilt classes for specific variants.
+
+**Template classes**
+
+These combine the separate components into the appropriate module and also provide the forward function und perform
+consistency checks. The components all come from submodules and their syntax and purpose is described below.
+
+    SelfAttentionModule
+      Arguments:
+        qkv_mapping QKVmap: mapping from input to query, key, and value
+        attention_mechanism AttentionModule: performs attention with query, key, and value
+        head_reduction HeadReduction: recombines the results of the heads
+        output_module OutputModule: maps the recombined output to the output dimension
+        nhead int: number of identical heads to create
+
+    CrossAttentionModule
+      Arguments:
+        q_mapping Qmap: mapping from input_ to query
+        kv_mapping KVmap: mapping from other to key and value
+        attention_mechanism AttentionModule: performs attention with query, key, and value
+        head_reduction HeadReduction: recombines the results of the heads
+        output_module OutputModule: maps the recombined output to the output dimension
+        nhead int: number of identical heads to create
+
+**Other available classes**
+
+These implement specific variants of self- and cross-attention. Typically, each variant implements a
+`SelfAttentionModule` and a `CrossAttentionModule` with the same prefix (e.g. `ClassicalSelfAttentionModule` and
+`ClassicalCrossAttentionModule`).
+Classes are listed by prefix, and unless otherwise specified both accept the same arguments except that
+`SelfAttentionModule`s never require `other_features`.
+
+    Classical: attention modules as used in the classical Transformer (Vaswani et al 17)
+    
+      Arguments:
+        input_features int: size of the (first) input feature dimension
+        other_features int: size of the other (second) input feature dimension
+        d_model int: internal number of features for the attention mechanism
+        nhead int: number of attention heads
+        output_features int: size of the output feature dimension
+        mask Optional[Union[AttentionMatrixMask, str]]: mask for masked attention (default: None)
+        bias bool: If set to False, the DoubleLinearOutputModule will not learn an additive bias (default: True)
+        device Optional[torch.device]: computation device the module is initialized on
+        dtype Optional[torch.dtype]: data type of the module
+
 
 ##### attention_mechanisms
 
@@ -187,7 +233,7 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
 ## ToDo:
  - [ ] ***Documentation***
    - [ ] **layers**
-     - [ ] **attention_modules**
+     - [x] **attention_modules**
        - [x] **attention_mechanisms**
          - [x] **masking**
            - [x] base.py
@@ -204,8 +250,8 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
        - [x] **qkv_maps**
            - [x] base.py
            - [x] linear.py
-       - [ ] base.py
-       - [ ] classical.py
+       - [x] base.py
+       - [x] classical.py
      - [ ] base.py
      - [ ] classical.py
    - [ ] README.md

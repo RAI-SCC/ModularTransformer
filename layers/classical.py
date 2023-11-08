@@ -35,7 +35,7 @@ class ClassicalTransformerEncoderLayer(TransformerEncoderLayer):
 
         self_attention_layer = ClassicalSelfAttentionModule(
             input_features=input_features,
-            attention_dimension=attention_dimension,
+            d_model=attention_dimension,
             nhead=nhead,
             output_features=input_features,
             mask=mask,
@@ -80,7 +80,7 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
 
         self_attention_layer = ClassicalSelfAttentionModule(
             input_features=input_features,
-            attention_dimension=attention_dimension,
+            d_model=attention_dimension,
             nhead=nhead,
             output_features=input_features,
             mask=mask,
@@ -90,7 +90,7 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
         cross_attention_layer = ClassicalCrossAttentionModule(
             input_features=input_features,
             other_features=other_features,
-            attention_dimension=attention_dimension,
+            d_model=attention_dimension,
             nhead=nhead,
             output_features=input_features,
             mask=None,

@@ -17,10 +17,23 @@ __all__ = [
 
 
 class ClassicalSelfAttentionModule(SelfAttentionModule):
+    """
+    Self attention module as used in the classical Transformer (Vaswani et al 17)
+
+    Parameters
+        :param input_features int: size of the input feature dimension
+        :param d_model int: internal number of features for the attention mechanism
+        :param nhead int: number of attention heads
+        :param output_features int: size of the output feature dimension
+        :param mask Optional[Union[AttentionMatrixMask, str]]: mask for masked attention (default: None)
+        :param bias bool: If set to False, the DoubleLinearOutputModule will not learn an additive bias (default: True)
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+    """
     def __init__(
             self,
             input_features: int,
-            attention_dimension: int,
+            d_model: int,
             nhead: int,
             output_features: int,
             mask: Optional[Union[AttentionMatrixMask, str]] = None,
@@ -31,21 +44,21 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
         factory_kwargs = {'device': device, 'dtype': dtype}
         qkv_mapping = LinearQKVmap(
             input_features=input_features,
-            q_features=attention_dimension,
-            k_features=attention_dimension,
-            v_features=attention_dimension,
+            q_features=d_model,
+            k_features=d_model,
+            v_features=d_model,
             activation=None,
             bias=bias,
             **factory_kwargs)
 
         attention_mechanism = DotProductAttention(
-            q_features=attention_dimension,
-            v_features=attention_dimension,
+            q_features=d_model,
+            v_features=d_model,
             mask=mask,
             **factory_kwargs)
 
         head_reduction = ConcatHeads(
-            attention_dimension=attention_dimension,
+            attention_dimension=d_model,
             nhead=nhead,
             *factory_kwargs)
         attention_output_features = head_reduction.attention_output_features()
@@ -67,11 +80,26 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
 
 
 class ClassicalCrossAttentionModule(CrossAttentionModule):
+    """
+    Cross attention module as used in the classical Transformer (Vaswani et al 17)
+
+    Parameters
+        :param input_features int: size of the (first) input feature dimension
+        :param other_features int: size of the other (second) input feature dimension
+        :param d_model int: internal number of features for the attention mechanism
+        :param nhead int: number of attention heads
+        :param output_features int: size of the output feature dimension
+        :param mask Optional[Union[AttentionMatrixMask, str]]: mask for masked attention (default: None)
+        :param bias bool: If set to False, the DoubleLinearOutputModule will not learn an additive bias (default: True)
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+    """
+
     def __init__(
             self,
             input_features: int,
             other_features: int,
-            attention_dimension: int,
+            d_model: int,
             nhead: int,
             output_features: int,
             mask: Optional[Union[AttentionMatrixMask, str]] = None,
@@ -82,27 +110,27 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
         factory_kwargs = {'device': device, 'dtype': dtype}
         q_mapping = LinearQmap(
             input_features=input_features,
-            q_features=attention_dimension,
+            q_features=d_model,
             activation=None,
             bias=bias,
             **factory_kwargs)
 
         kv_mapping = LinearKVmap(
             input_features=other_features,
-            k_features=attention_dimension,
-            v_features=attention_dimension,
+            k_features=d_model,
+            v_features=d_model,
             activation=None,
             bias=bias,
             **factory_kwargs)
 
         attention_mechanism = DotProductAttention(
-            q_features=attention_dimension,
-            v_features=attention_dimension,
+            q_features=d_model,
+            v_features=d_model,
             mask=mask,
             **factory_kwargs)
 
         head_reduction = ConcatHeads(
-            attention_dimension=attention_dimension,
+            attention_dimension=d_model,
             nhead=nhead,
             *factory_kwargs)
         attention_output_features = head_reduction.attention_output_features()
