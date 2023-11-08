@@ -7,6 +7,59 @@ arguments.
 
 ## Transformer
 
+The top level template classes of this package provide an encoder-decoder structure as used in Transformers (`Transformer`)
+and RNNs (`ParallelTransformer`), which can be filled to create various architectures.
+Some prebuild Transformer architectures are also provided.
+
+**Template classes**
+
+These combine the separate components into the appropriate module and also provide the forward function und perform
+consistency checks. The components all come from submodules and their syntax and purpose is described below.
+
+    Transformer
+      Arguments:
+        encoder_layer TransformerEncoderLayer: the encoder layer
+        decoder_layer TransformerDecoderLayer: the decoder layer
+        output_module OutputModule: output module to apply to the final decoder output
+        num_encoder_layers int: number of encoder layers
+        num_decoder_layers int: number of decoder layers
+
+    ParallelTransformer
+      Arguments:
+        encoder_layer TransformerEncoderLayer: the encoder layer
+        decoder_layer TransformerDecoderLayer: the decoder layer
+        output_module OutputModule: output module to apply to the final decoder output
+        num_layers int: number of layers
+
+**Other available classes**
+
+The main available class is `ClassicalTransformer`, which provides a very similar interface to th torch.nn.Transformer,
+but slightly more customization options.
+
+    ClassicalTransformer
+      Arguments:
+        input_features int: size of the input feature dimension
+        d_model int: internal number of features for the attention mechanism
+        nhead int: number of attention heads
+        dim_feedforward: dimension of the `DoubleLinearOutputModule`s (feedforward layers) in each layer and on
+         final output
+        num_encoder_layers int: number of encoder layers
+        num_decoder_layers int: number of decoder layers
+        hidden_features int: size of the encoder output feature dimension (default: input_features)
+        output_features int: size of the decoder output feature dimension (default: input_features)
+        inter_activation Optional[str or Callable[[Tensor], Tensor]]: activation of the `DoubleLinearOutputModule`s
+        each layer (default: ReLU())
+        final_activation Optional[str or Callable[[Tensor], Tensor]]: activation of the `DoubleLinearOutputModule`
+        the final output layer (default: ReLU())
+        encoder_mask Optional[AttentionMatrixMask or str]: mask for encoder attention (default: None)
+        decoder_mask Optional[AttentionMatrixMask or str]: mask for decoder attention (default: None)
+        bias bool: If set to False, all Linear layers will not learn an additive bias (default: True)
+        layer_norm bool: if False not layer norm will be applied after attention and output module (default: True)
+        dropout float: dropout rate applied on the output of attention and output module (default: 0.)
+        device Optional[torch.device]: computation device the module is initialized on
+        dtype Optional[torch.dtype]: data type of the module
+
+
 ### layers
 
 This module defines the template for encoder and decoder layers. It contains the classes `TransformerEncoderLayer` and 
@@ -286,7 +339,7 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
   
 
 ## ToDo:
- - [ ] ***Documentation***
+ - [x] ***Documentation***
    - [x] **layers**
      - [x] **attention_modules**
        - [x] **attention_mechanisms**
@@ -309,9 +362,9 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
        - [x] classical.py
      - [x] base.py
      - [x] classical.py
-   - [ ] README.md
-   - [ ] Transformer base.py
-   - [ ] Transformer classical.py
+   - [x] README.md
+   - [x] Transformer base.py
+   - [x] Transformer classical.py
 
 
 

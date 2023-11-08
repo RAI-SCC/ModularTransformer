@@ -14,6 +14,20 @@ __all__ = [
 
 
 class Transformer(Module):
+    """
+    Provides the structure for an encoder-decoder architecture
+
+    In this variant the output of the final encoder layer is used as hidden state for each decoder layer, like in a
+    typical Transformer architecture.
+    It also deepcopies the provided layers to generate multilayer architectures and provides basic consistency checks.
+
+    Parameters:
+        :param encoder_layer TransformerEncoderLayer: the encoder layer
+        :param decoder_layer TransformerDecoderLayer: the decoder layer
+        :param output_module OutputModule: output module to apply to the final decoder output
+        :param num_encoder_layers int: number of encoder layers
+        :param num_decoder_layers int: number of decoder layers
+    """
     def __init__(
             self,
             encoder_layer: TransformerEncoderLayer,
@@ -31,6 +45,7 @@ class Transformer(Module):
         self._check_validity()
 
     def _check_validity(self) -> None:
+        """Checks consistency of the components"""
         assert self.encoder_layers[-1].output_features == self.decoder_layers[0].other_features
         assert self.decoder_layers[-1].output_features == self.output_module.attention_output_features
 
@@ -61,6 +76,20 @@ class Transformer(Module):
 
 
 class ParallelTransformer(Transformer):
+    """
+    Provides the structure for an encoder-decoder architecture
+
+    In this variant the output each encoder layer is used as hidden state for each matching decoder layer, like in a
+    typical RNN architecture.
+    It also deepcopies the provided layers to generate multilayer architectures and provides basic consistency checks.
+
+    Parameters:
+        :param encoder_layer TransformerEncoderLayer: the encoder layer
+        :param decoder_layer TransformerDecoderLayer: the decoder layer
+        :param output_module OutputModule: output module to apply to the final decoder output
+        :param num_layers int: number of layers
+    """
+
     def __init__(
         self,
         encoder_layer: TransformerEncoderLayer,

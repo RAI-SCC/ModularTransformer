@@ -11,10 +11,35 @@ from torch import Tensor
 
 
 class ClassicalTransformer(Transformer):
+    """
+    The classical Transformer architecture as propose by Vaswani et 17
+
+    Parameters:
+        :param input_features int: size of the input feature dimension
+        :param d_model int: internal number of features for the attention mechanism
+        :param nhead int: number of attention heads
+        :param dim_feedforward: dimension of the `DoubleLinearOutputModule`s (feedforward layers) in each layer and on
+            the final output
+        :param num_encoder_layers int: number of encoder layers
+        :param num_decoder_layers int: number of decoder layers
+        :param hidden_features int: size of the encoder output feature dimension (default: input_features)
+        :param output_features int: size of the decoder output feature dimension (default: input_features)
+        :param inter_activation Optional[str or Callable[[Tensor], Tensor]]: activation of the `DoubleLinearOutputModule`s
+            in each layer (default: ReLU())
+        :param final_activation Optional[str or Callable[[Tensor], Tensor]]: activation of the `DoubleLinearOutputModule`
+            in the final output layer (default: ReLU())
+        :param encoder_mask Optional[AttentionMatrixMask or str]: mask for encoder attention (default: None)
+        :param decoder_mask Optional[AttentionMatrixMask or str]: mask for decoder attention (default: None)
+        :param bias bool: If set to False, all Linear layers will not learn an additive bias (default: True)
+        :param layer_norm bool: if False not layer norm will be applied after attention and output module (default: True)
+        :param dropout float: dropout rate applied on the output of attention and output module (default: 0.)
+        :param device Optional[torch.device]: computation device the module is initialized on
+        :param dtype Optional[torch.dtype]: data type of the module
+    """
     def __init__(
             self,
             input_features: int,
-            attention_dimension: int,
+            d_model: int,
             nhead: int,
             dim_feedforward: int,
             num_encoder_layers: int = 1,
@@ -38,7 +63,7 @@ class ClassicalTransformer(Transformer):
 
         encoder_layer = ClassicalTransformerEncoderLayer(
             input_features=input_features,
-            d_model=attention_dimension,
+            d_model=d_model,
             nhead=nhead,
             dim_feedforward=dim_feedforward,
             output_features=hidden_features,
@@ -52,7 +77,7 @@ class ClassicalTransformer(Transformer):
         decoder_layer = ClassicalTransformerDecoderLayer(
             input_features=input_features,
             other_features=hidden_features,
-            attention_dimension=attention_dimension,
+            attention_dimension=d_model,
             nhead=nhead,
             dim_feedforward=dim_feedforward,
             output_features=input_features,

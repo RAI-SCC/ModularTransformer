@@ -27,7 +27,7 @@ class ClassicalTransformerEncoderLayer(TransformerEncoderLayer):
         :param output_features int: size of the output feature dimension
         :param mask Optional[AttentionMatrixMask or str]: mask for masked attention (default: None)
         :param bias bool: If set to False, all Linear layers will not learn an additive bias (default: True)
-        :param layer_norm bool: if False not layernorm will be apllied after attention and output module (default: True)
+        :param layer_norm bool: if False not layer norm will be applied after attention and output module (default: True)
         :param dropout float: dropout rate applied on the output of attention and output module (default: 0.)
         :param activation Optional[str or Callable[[Tensor], Tensor]]: activation of the `DoubleLinearOutputModule` (default: ReLU())
         :param device Optional[torch.device]: computation device the module is initialized on
@@ -89,7 +89,7 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
         :param output_features int: size of the output feature dimension
         :param mask Optional[AttentionMatrixMask or str]: mask for masked attention (default: None)
         :param bias bool: If set to False, all Linear layers will not learn an additive bias (default: True)
-        :param layer_norm bool: if False not layernorm will be apllied after attention and output module (default: True)
+        :param layer_norm bool: if False not layer norm will be applied after attention and output module (default: True)
         :param dropout float: dropout rate applied on the output of attention and output module (default: 0.)
         :param activation Optional[str or Callable[[Tensor], Tensor]]: activation of the `DoubleLinearOutputModule` (default: ReLU())
         :param device Optional[torch.device]: computation device the module is initialized on
