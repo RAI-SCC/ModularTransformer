@@ -5,6 +5,22 @@ their name as string. If the named class is defined in the standard location for
 activation functions or qkv_maps for `Qmap`s) an instance of the class will be automatically created with the default
 arguments.
 
+**Note on shapes**
+
+This package assumes Tensors that are inputs for `forward` methods to conform to the shape (H, B, S, F).
+B is the batch dimension, which can be replaced by an arbitrary number of dimensions to represent other properties
+(e.g. sampling (plating)) in addition to batching.
+Typically, the head dimension H can be included in this, but where it occurs and is relevant (i.e. in `HeadReduction`)
+it is always the first dimension.
+`SelfAttentionModule` and `CrossAttentionModule`, which create the separate heads, handle the correct creation.
+
+The sequence dimension S is only relevant for `masking` as it determines the shape of the attention matrix.
+Current modules are only compatible with one sequence dimension, but custom attention mechanisms could change this.
+
+The feature dimension F is an important input parameter for most modules.
+The current setup does not support multiple feature dimensions.
+
+
 ## Transformer
 
 The top level template classes of this package provide an encoder-decoder structure as used in Transformers (`Transformer`)
@@ -235,7 +251,8 @@ consistency checks.
 
 **Currently available classes**
 
-    ConcatHeads: collapses the head dimension by concatenating all features, default approach for most attention architectures
+    ConcatHeads: collapses the head dimension by concatenating all features, default approach for most attention
+      architectures using a sequence of input vectors
 
       Additional arguments:
         None    

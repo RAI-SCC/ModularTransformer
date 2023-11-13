@@ -11,7 +11,7 @@ class ConcatHeads(HeadReduction):
     """
     Collapses the head dimension by concatenating all features
 
-    Default approach for most attention architectures
+    Default approach for most attention architectures using a sequence of input vectors
 
     Parameters
         :param attention_dimension int: size of the input feature dimension
@@ -23,5 +23,5 @@ class ConcatHeads(HeadReduction):
         return self.nhead * self.attention_dimension
 
     def forward(self, input_: Tensor) -> Tensor:
-        output = input_.transpose(-2, -3).flatten(-2)
+        output = input_.movedim(0, -2).flatten(-2)
         return output

@@ -51,7 +51,7 @@ class HeadReduction(Module, ABC):
     @abstractmethod
     def forward(self, input_: Tensor) -> Tensor:
         """
-        This accepts a Tensor of shape (*, H, S, A) and should output a Tensor of shape (*, S, F), where S is the
+        This accepts a Tensor of shape (H, *, S, A) and should output a Tensor of shape (*, S, F), where S is the
         input sequence length, A is self.attention_dimension, H is self.nhead, and F is self.attention_output_features
         """
         raise NotImplementedError
