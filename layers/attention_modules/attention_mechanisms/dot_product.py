@@ -6,10 +6,11 @@ from torch.nn.functional import softmax
 
 from typing import Optional, Union
 from torch import Tensor
-from .masking import AttentionMatrixMask
+from .masking import AttentionMatrixMask, TriangularMask
 
 __all__ = [
     'DotProductAttention',
+    'MaskedDotProductAttention',
 ]
 
 
@@ -52,3 +53,29 @@ class DotProductAttention(AttentionModule):
         output = torch.matmul(attention_matrix, value)
 
         return output
+
+class MaskedDotProductAttention(DotProductAttention):
+    """
+    Alternate version of `DotProductAttention`
+
+    The only difference to `DotProductAttention` is that `TriangularMask` is used as default for ease of use
+
+    Parameters
+        :param q_features int: number of features of the q- and k-component (i.e. first and second) input
+        :param v_features Optional[int]: number of features of the v-component (i.e. third) input (default: q_features)
+        :param mask Optional[AttentionMatrixMask]: mask for masked attention (default: TriangularMask())
+    """
+    def __init__(
+            self,
+            q_features: int,
+            v_features: Optional[int] = None,
+            mask: Optional[Union[AttentionMatrixMask, str]] = TriangularMask(),
+            **kwargs
+    ) -> None:
+        self.mask = getattr(masking, mask)() if isinstance(mask, str) else mask
+
+        super().__init__(
+            q_features=q_features,
+            v_features=v_features,
+            mask=mask
+        )

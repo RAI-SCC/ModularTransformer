@@ -208,6 +208,16 @@ consistency checks.
 
       Additional arguments:
         mask Optional[AttentionMatrixMask or str]: mask for masked attention (default: None)
+
+      Since q_features == v_features for this mechanism, v_features is ignored and inferred.
+
+
+    MaskedDotProductAttention: Alternate version of `DotProductAttention, that uses `TriangularMask` as default for ease
+      of use.
+
+      Additional arguments:
+        mask Optional[AttentionMatrixMask or str]: mask for masked attention (default: None)
+
       Since q_features == v_features for this mechanism, v_features is ignored and inferred.
 
 
