@@ -1,2 +1,2 @@
-from base import Transformer, ParallelTransformer
-from classical import ClassicalTransformer
+from .base import Transformer, ParallelTransformer
+from .classical import ClassicalTransformer

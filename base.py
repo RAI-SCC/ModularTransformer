@@ -49,6 +49,13 @@ class Transformer(Module):
         assert self.encoder_layers[-1].output_features == self.decoder_layers[0].other_features
         assert self.decoder_layers[-1].output_features == self.output_module.attention_output_features
 
+        if len(self.encoder_layers) > 1:
+            for l1, l2 in zip(self.encoder_layers[:-1], self.encoder_layers[1:]):
+                assert l1.output_features == l2.input_features
+        if len(self.decoder_layers) > 1:
+            for l1, l2 in zip(self.decoder_layers[:-1], self.decoder_layers[1:]):
+                assert l1.output_features == l2.input_features
+
     @property
     def encoder_features(self) -> int:
         return self.encoder_layers[0].input_features

@@ -1,4 +1,5 @@
 import torch
+from math import sqrt
 
 from . import masking
 from .base import AttentionModule
@@ -42,17 +43,19 @@ class DotProductAttention(AttentionModule):
         assert self.q_features == self.k_features
         super()._check_validity()
 
+    @property
     def output_features(self) -> int:
         return self.v_features
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor) -> Tensor:
         scale = query.shape[-1]
-        attention_matrix = softmax(torch.div(torch.matmul(query, key.transpose(-1, -2)), torch.sqrt(scale)))
+        attention_matrix = softmax(torch.div(torch.matmul(query, key.transpose(-1, -2)), sqrt(scale)), dim=-1)
         if self.mask is not None:
             attention_matrix = self.ma
         output = torch.matmul(attention_matrix, value)
 
         return output
+
 
 class MaskedDotProductAttention(DotProductAttention):
     """

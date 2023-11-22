@@ -19,6 +19,8 @@ class ConcatHeads(HeadReduction):
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
     """
+
+    @property
     def attention_output_features(self) -> int:
         return self.nhead * self.attention_dimension
 

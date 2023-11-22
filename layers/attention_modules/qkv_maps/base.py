@@ -180,7 +180,7 @@ class QKVmap(Module, ABC):
         self.input_features = input_features
         self.q_features = q_features
         self.k_features = k_features or q_features
-        self.v_features = v_features or self.v_features
+        self.v_features = v_features or self.k_features
 
         self._check_validity()
 

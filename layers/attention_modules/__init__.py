@@ -1,4 +1,2 @@
-import output_modules
 from .base import SelfAttentionModule, CrossAttentionModule
 from .classical import ClassicalSelfAttentionModule, ClassicalCrossAttentionModule
-from .full_access import FullAccessSelfAttentionModule, FullAccessCrossAttentionModule

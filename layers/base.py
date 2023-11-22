@@ -64,7 +64,7 @@ class TransformerEncoderLayer(Module):
         assert self.self_attention_layer.output_features == self.output_layer.attention_output_features
 
         if self.residual_connection:
-            assert self.self_attention_layer.input_features == self.self_attention_layer.output_features
+            assert self.input_features == self.self_attention_layer.output_features
             assert self.output_layer.attention_output_features == self.output_layer.output_features
 
     @property

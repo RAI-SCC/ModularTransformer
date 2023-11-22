@@ -49,7 +49,7 @@ class SelfAttentionModule(Module):
 
     @property
     def input_features(self) -> int:
-        return self.qkv_mapping.input_features
+        return self.qkv_mappings[0].input_features
 
     @property
     def output_features(self) -> int:
@@ -57,9 +57,9 @@ class SelfAttentionModule(Module):
 
     def _check_validity(self):
         """Checks consistency of the components"""
-        assert self.qkv_mappings[0].q_features == self.attention_mechanism[0].q_features
+        assert self.qkv_mappings[0].q_features == self.attention_mechanisms[0].q_features
         assert self.head_reduction.nhead == self._nhead
-        assert self.attention_mechanism[0].output_features == self.head_reduction.attention_dimension
+        assert self.attention_mechanisms[0].output_features == self.head_reduction.attention_dimension
         assert self.head_reduction.attention_output_features == self.output_module.attention_output_features
 
     def forward(self, input_: Tensor) -> Tensor:
@@ -114,11 +114,11 @@ class CrossAttentionModule(Module):
 
     @property
     def input_features(self) -> int:
-        return self.q_mapping.input_features
+        return self.q_mappings[0].input_features
 
     @property
     def other_features(self) -> int:
-        return self.kv_mapping.input_features
+        return self.kv_mappings[0].input_features
 
     @property
     def output_features(self) -> int:
