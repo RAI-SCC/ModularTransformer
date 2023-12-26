@@ -421,3 +421,9 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
    - [ ] README.md
    - [ ] Transformer base.py
    - [ ] Transformer classical.py
+
+# Installation
+
+```bash
+pip install -e .
+```

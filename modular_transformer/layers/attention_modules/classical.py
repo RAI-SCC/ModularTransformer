@@ -60,8 +60,8 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
         head_reduction = ConcatHeads(
             attention_dimension=d_model,
             nhead=nhead,
-            *factory_kwargs)
-        attention_output_features = head_reduction.attention_output_features()
+            **factory_kwargs)
+        attention_output_features = head_reduction.attention_output_features
 
         output_module = LinearOutputModule(
             attention_output_features=attention_output_features,
@@ -132,8 +132,8 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
         head_reduction = ConcatHeads(
             attention_dimension=d_model,
             nhead=nhead,
-            *factory_kwargs)
-        attention_output_features = head_reduction.attention_output_features()
+            **factory_kwargs)
+        attention_output_features = head_reduction.attention_output_features
 
         output_module = LinearOutputModule(
             attention_output_features=attention_output_features,
