@@ -1,15 +1,15 @@
-import torch
-from torch.nn import Module, LayerNorm, Dropout
+from typing import Optional
 
-from .attention_modules import SelfAttentionModule, CrossAttentionModule
+import torch
+from torch import Tensor
+from torch.nn import Dropout, LayerNorm, Module
+
+from .attention_modules import CrossAttentionModule, SelfAttentionModule
 from .attention_modules.output_modules import OutputModule
 
-from typing import Optional
-from torch import Tensor
-
 __all__ = [
-    'TransformerEncoderLayer',
-    'TransformerDecoderLayer',
+    "TransformerEncoderLayer",
+    "TransformerDecoderLayer",
 ]
 
 
@@ -32,17 +32,18 @@ class TransformerEncoderLayer(Module):
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
     """
+
     def __init__(
-            self,
-            self_attention_layer: SelfAttentionModule,
-            output_layer: OutputModule,
-            residual_connection: bool = True,
-            layer_norm: bool = True,
-            dropout: float = 0.,
-            device: Optional[torch.device] = None,
-            dtype: Optional[torch.dtype] = None
+        self,
+        self_attention_layer: SelfAttentionModule,
+        output_layer: OutputModule,
+        residual_connection: bool = True,
+        layer_norm: bool = True,
+        dropout: float = 0.0,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
     ) -> None:
-        factory_kwargs = {'device': device, 'dtype': dtype}
+        factory_kwargs = {"device": device, "dtype": dtype}
         super().__init__()
 
         self.self_attention_layer = self_attention_layer
@@ -61,7 +62,9 @@ class TransformerEncoderLayer(Module):
 
     def _check_validity(self) -> None:
         """Checks consistency of the model"""
-        assert self.self_attention_layer.output_features == self.output_layer.attention_output_features
+        assert (
+            self.self_attention_layer.output_features == self.output_layer.attention_output_features
+        )
 
         if self.residual_connection:
             assert self.input_features == self.self_attention_layer.output_features
@@ -86,10 +89,7 @@ class TransformerEncoderLayer(Module):
         x = self.dropout(x)
 
         # Output layer
-        if self.residual_connection:
-            output = x + self.output_layer(x)
-        else:
-            output = self.output_layer(x)
+        output = x + self.output_layer(x) if self.residual_connection else self.output_layer(x)
         if self.layer_norm:
             output = self.layer_norm2(output)
         output = self.dropout(output)
@@ -117,18 +117,19 @@ class TransformerDecoderLayer(Module):
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
     """
+
     def __init__(
-            self,
-            self_attention_layer: SelfAttentionModule,
-            cross_attention_layer: CrossAttentionModule,
-            output_layer: OutputModule,
-            residual_connection: bool = True,
-            layer_norm: bool = True,
-            dropout: float = 0.,
-            device: Optional[torch.device] = None,
-            dtype: Optional[torch.dtype] = None
+        self,
+        self_attention_layer: SelfAttentionModule,
+        cross_attention_layer: CrossAttentionModule,
+        output_layer: OutputModule,
+        residual_connection: bool = True,
+        layer_norm: bool = True,
+        dropout: float = 0.0,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
     ) -> None:
-        factory_kwargs = {'device': device, 'dtype': dtype}
+        factory_kwargs = {"device": device, "dtype": dtype}
         super().__init__()
 
         self.self_attention_layer = self_attention_layer
@@ -149,12 +150,23 @@ class TransformerDecoderLayer(Module):
 
     def _check_validity(self) -> None:
         """Checks consistency of the model"""
-        assert self.self_attention_layer.output_features == self.cross_attention_layer.input_features
-        assert self.cross_attention_layer.output_features == self.output_layer.attention_output_features
+        assert (
+            self.self_attention_layer.output_features == self.cross_attention_layer.input_features
+        )
+        assert (
+            self.cross_attention_layer.output_features
+            == self.output_layer.attention_output_features
+        )
 
         if self.residual_connection:
-            assert self.self_attention_layer.input_features == self.self_attention_layer.output_features
-            assert self.cross_attention_layer.input_features == self.cross_attention_layer.output_features
+            assert (
+                self.self_attention_layer.input_features
+                == self.self_attention_layer.output_features
+            )
+            assert (
+                self.cross_attention_layer.input_features
+                == self.cross_attention_layer.output_features
+            )
             assert self.output_layer.attention_output_features == self.output_layer.output_features
 
     @property
@@ -189,10 +201,7 @@ class TransformerDecoderLayer(Module):
         x = self.dropout(x)
 
         # Output layer
-        if self.residual_connection:
-            output = x + self.output_layer(x)
-        else:
-            output = self.output_layer(x)
+        output = x + self.output_layer(x) if self.residual_connection else self.output_layer(x)
         if self.layer_norm:
             output = self.layer_norm3(output)
         output = self.dropout(output)

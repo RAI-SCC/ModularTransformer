@@ -1,11 +1,8 @@
-import torch
 from abc import ABC, abstractmethod
 
 from torch import Tensor
 
-__all__ = [
-    'AttentionMatrixMask'
-]
+__all__ = ["AttentionMatrixMask"]
 
 
 class AttentionMatrixMask(ABC):
@@ -15,6 +12,7 @@ class AttentionMatrixMask(ABC):
     `AttentionMatrixMask`s operate on a (possibly batched) two-dimensional attention matrix and proved a masked version
     of it through th `apply_to` method.
     """
+
     @abstractmethod
     def apply_to(self, attention_matrix: Tensor) -> Tensor:
         """Accepts the attention matrix as input and return a masked version, which should have the same shape"""

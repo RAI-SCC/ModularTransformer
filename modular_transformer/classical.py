@@ -1,13 +1,13 @@
+from typing import Callable, Optional, Union
+
 import torch
-from torch.nn import Softmax, ReLU
+from torch import Tensor
+from torch.nn import ReLU, Softmax
 
 from .base import Transformer
-from .layers import ClassicalTransformerEncoderLayer, ClassicalTransformerDecoderLayer
-from .layers.attention_modules.output_modules import LinearOutputModule
+from .layers import ClassicalTransformerDecoderLayer, ClassicalTransformerEncoderLayer
 from .layers.attention_modules.attention_mechanisms.masking import AttentionMatrixMask
-
-from typing import Optional, Union, Callable
-from torch import Tensor
+from .layers.attention_modules.output_modules import LinearOutputModule
 
 
 class ClassicalTransformer(Transformer):
@@ -36,27 +36,28 @@ class ClassicalTransformer(Transformer):
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
     """
+
     def __init__(
-            self,
-            input_features: int,
-            d_model: int,
-            nhead: int,
-            dim_feedforward: int,
-            num_encoder_layers: int = 1,
-            num_decoder_layers: int = 1,
-            hidden_features: Optional[int] = None,
-            output_features: Optional[int] = None,
-            inter_activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = ReLU(),
-            final_activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = Softmax(),
-            encoder_mask: Optional[Union[AttentionMatrixMask, str]] = None,
-            decoder_mask: Optional[Union[AttentionMatrixMask, str]] = None,
-            bias: bool = True,
-            layer_norm: bool = True,
-            dropout: float = 0.,
-            device: Optional[torch.device] = None,
-            dtype: Optional[torch.dtype] = None
+        self,
+        input_features: int,
+        d_model: int,
+        nhead: int,
+        dim_feedforward: int,
+        num_encoder_layers: int = 1,
+        num_decoder_layers: int = 1,
+        hidden_features: Optional[int] = None,
+        output_features: Optional[int] = None,
+        inter_activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = ReLU(),
+        final_activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = Softmax(),
+        encoder_mask: Optional[Union[AttentionMatrixMask, str]] = None,
+        decoder_mask: Optional[Union[AttentionMatrixMask, str]] = None,
+        bias: bool = True,
+        layer_norm: bool = True,
+        dropout: float = 0.0,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
     ) -> None:
-        factory_kwargs = {'device': device, 'dtype': dtype}
+        factory_kwargs = {"device": device, "dtype": dtype}
 
         hidden_features = hidden_features or input_features
         output_features = output_features or input_features
@@ -72,7 +73,8 @@ class ClassicalTransformer(Transformer):
             layer_norm=layer_norm,
             dropout=dropout,
             activation=inter_activation,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         decoder_layer = ClassicalTransformerDecoderLayer(
             input_features=input_features,
@@ -86,7 +88,8 @@ class ClassicalTransformer(Transformer):
             layer_norm=layer_norm,
             dropout=dropout,
             activation=inter_activation,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
         attention_output_features = decoder_layer.output_features
 
         output_layer = LinearOutputModule(
@@ -94,12 +97,16 @@ class ClassicalTransformer(Transformer):
             output_features=output_features,
             activation=final_activation,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         super().__init__(
             encoder_layer=encoder_layer,
             decoder_layer=decoder_layer,
             output_layer=output_layer,
             num_encoder_layers=num_encoder_layers,
-            num_decoder_layers=num_decoder_layers
+            num_decoder_layers=num_decoder_layers,
         )
+
+    def forward(self, encoder_input: Tensor, decoder_input: Tensor) -> Tensor:
+        return super().forward(encoder_input, decoder_input)

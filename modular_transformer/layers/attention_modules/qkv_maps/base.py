@@ -1,17 +1,17 @@
 import copy
-import torch
 from abc import ABC, abstractmethod
+from typing import Optional, Tuple, overload
 
-from typing import Tuple, Optional, overload
+import torch
 from torch import Tensor
 from torch.nn import Module
 
 __all__ = [
-    'Qmap',
-    'KVmap',
-    'QKVmap',
-    'CompositeKVmap',
-    'CompositeQKVmap',
+    "Qmap",
+    "KVmap",
+    "QKVmap",
+    "CompositeKVmap",
+    "CompositeQKVmap",
 ]
 
 
@@ -39,8 +39,15 @@ class Qmap(Module, ABC):
     The method _check_validity() is called at the end of the super.__init__ method (which is why it should be call last)
     and can be implemented to ensure consistency of the created module. By default there are no checks.
     """
-    def __init__(self, input_features: int, q_features: int,
-                 device: Optional[torch.device] = None, dtype: Optional[torch.dtype] = None, **kwargs) -> None:
+
+    def __init__(
+        self,
+        input_features: int,
+        q_features: int,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
+        **kwargs,
+    ) -> None:
         super().__init__()
         self.input_features = input_features
         self.q_features = q_features
@@ -60,11 +67,11 @@ class Qmap(Module, ABC):
         raise NotImplementedError
 
     @overload
-    def __add__(self, other: 'Qmap') -> 'KVmap':
+    def __add__(self, other: "Qmap") -> "KVmap":
         ...
 
     @overload
-    def __add__(self, other: 'KVmap') -> 'QKVmap':
+    def __add__(self, other: "KVmap") -> "QKVmap":
         ...
 
     def __add__(self, other):
@@ -84,7 +91,7 @@ class Qmap(Module, ABC):
         else:
             raise TypeError
 
-    def as_KVmap(self) -> 'CompositeKVmap':
+    def as_KVmap(self) -> "CompositeKVmap":  # noqa: N802
         """
         Creates a KVmap that uses independent copies of self for both components
         :return CompositeKVmap:
@@ -93,7 +100,7 @@ class Qmap(Module, ABC):
         v_map = copy.deepcopy(self)
         return CompositeKVmap(k_map, v_map)
 
-    def as_QKVmap(self) -> 'CompositeQKVmap':
+    def as_QKVmap(self) -> "CompositeQKVmap":  # noqa: N802
         """
         Creates a QKVmap that uses independent copies of self for all components
         :return CompositeQKVmap:
@@ -123,8 +130,16 @@ class KVmap(Module, ABC):
     The method _check_validity() is called at the end of the super.__init__ method (which is why it should be call last)
     and can be implemented to ensure consistency of the created module. By default there are no checks.
     """
-    def __init__(self, input_features: int, k_features: int, v_features: Optional[int] = None,
-                 device: Optional[torch.device] = None, dtype: Optional[torch.dtype] = None, **kwargs) -> None:
+
+    def __init__(
+        self,
+        input_features: int,
+        k_features: int,
+        v_features: Optional[int] = None,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
+        **kwargs,
+    ) -> None:
         super().__init__()
         self.input_features = input_features
         self.k_features = k_features
@@ -139,7 +154,9 @@ class KVmap(Module, ABC):
     def __add__(self, other) -> None:
         """Raises an error, see Qmap for details"""
         if isinstance(other, Qmap):
-            raise TypeError('Use Qmap + KVmap instead! This prevents counterintuitive behaviour when adding 3 Qmaps')
+            raise TypeError(
+                "Use Qmap + KVmap instead! This prevents counterintuitive behaviour when adding 3 Qmaps"
+            )
         else:
             raise TypeError
 
@@ -174,8 +191,16 @@ class QKVmap(Module, ABC):
     and can be implemented to ensure consistency of the created module. By default there are no checks.
     """
 
-    def __init__(self, input_features: int, q_features: int, k_features: Optional[int] = None, v_features: Optional[int] = None,
-                 device: Optional[torch.device] = None, dtype: Optional[torch.dtype] = None, **kwargs) -> None:
+    def __init__(
+        self,
+        input_features: int,
+        q_features: int,
+        k_features: Optional[int] = None,
+        v_features: Optional[int] = None,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
+        **kwargs,
+    ) -> None:
         super().__init__()
         self.input_features = input_features
         self.q_features = q_features
@@ -200,6 +225,7 @@ class QKVmap(Module, ABC):
 
 class CompositeKVmap(KVmap):
     """Combines two 'Qmaps' into a KVmap, via deepcopying and forwarding the input."""
+
     def __init__(self, k_map: Qmap, v_map: Qmap) -> None:
         self.k_map = k_map
         self.v_map = v_map
@@ -207,7 +233,7 @@ class CompositeKVmap(KVmap):
         super().__init__(
             input_features=self.k_map.input_features,
             k_features=self.k_map.q_features,
-            v_features=self.v_map.q_features
+            v_features=self.v_map.q_features,
         )
 
     def _check_validity(self) -> None:
@@ -223,6 +249,7 @@ class CompositeKVmap(KVmap):
 
 class CompositeQKVmap(QKVmap):
     """Combines a Qmap and a KVmap into a QKVmap by forwarding the input."""
+
     def __init__(self, q_map: Qmap, kv_map: KVmap) -> None:
         self.q_map = q_map
         self.kv_map = kv_map
@@ -231,7 +258,7 @@ class CompositeQKVmap(QKVmap):
             input_features=self.q_map.input_features,
             q_features=self.q_map.q_features,
             k_features=self.kv_map.k_features,
-            v_features=self.kv_map.v_features
+            v_features=self.kv_map.v_features,
         )
 
     def _check_validity(self) -> None:

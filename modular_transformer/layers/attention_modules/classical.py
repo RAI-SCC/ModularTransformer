@@ -1,18 +1,17 @@
+from typing import Optional, Union
+
 import torch
 
-from .base import SelfAttentionModule, CrossAttentionModule
-from .qkv_maps import LinearQmap, LinearKVmap, LinearQKVmap
 from .attention_mechanisms import DotProductAttention
+from .attention_mechanisms.masking import AttentionMatrixMask
+from .base import CrossAttentionModule, SelfAttentionModule
 from .head_reductions import ConcatHeads
 from .output_modules import LinearOutputModule
-from .attention_mechanisms.masking import AttentionMatrixMask
-
-from typing import Optional, Union
-from torch import Tensor
+from .qkv_maps import LinearKVmap, LinearQKVmap, LinearQmap
 
 __all__ = [
-    'ClassicalSelfAttentionModule',
-    'ClassicalCrossAttentionModule',
+    "ClassicalSelfAttentionModule",
+    "ClassicalCrossAttentionModule",
 ]
 
 
@@ -30,18 +29,19 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
     """
+
     def __init__(
-            self,
-            input_features: int,
-            d_model: int,
-            nhead: int,
-            output_features: int,
-            mask: Optional[Union[AttentionMatrixMask, str]] = None,
-            bias: bool = True,
-            device: Optional[torch.device] = None,
-            dtype: Optional[torch.dtype] = None
+        self,
+        input_features: int,
+        d_model: int,
+        nhead: int,
+        output_features: int,
+        mask: Optional[Union[AttentionMatrixMask, str]] = None,
+        bias: bool = True,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
     ) -> None:
-        factory_kwargs = {'device': device, 'dtype': dtype}
+        factory_kwargs = {"device": device, "dtype": dtype}
         qkv_mapping = LinearQKVmap(
             input_features=input_features,
             q_features=d_model,
@@ -49,18 +49,14 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
             v_features=d_model,
             activation=None,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         attention_mechanism = DotProductAttention(
-            q_features=d_model,
-            v_features=d_model,
-            mask=mask,
-            **factory_kwargs)
+            q_features=d_model, v_features=d_model, mask=mask, **factory_kwargs
+        )
 
-        head_reduction = ConcatHeads(
-            attention_dimension=d_model,
-            nhead=nhead,
-            **factory_kwargs)
+        head_reduction = ConcatHeads(attention_dimension=d_model, nhead=nhead, **factory_kwargs)
         attention_output_features = head_reduction.attention_output_features
 
         output_module = LinearOutputModule(
@@ -68,14 +64,15 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
             output_features=output_features,
             activation=None,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         super().__init__(
             qkv_mapping=qkv_mapping,
             attention_mechanism=attention_mechanism,
             head_reduction=head_reduction,
             output_module=output_module,
-            nhead=nhead
+            nhead=nhead,
         )
 
 
@@ -96,24 +93,25 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
     """
 
     def __init__(
-            self,
-            input_features: int,
-            other_features: int,
-            d_model: int,
-            nhead: int,
-            output_features: int,
-            mask: Optional[Union[AttentionMatrixMask, str]] = None,
-            bias: bool = True,
-            device: Optional[torch.device] = None,
-            dtype: Optional[torch.dtype] = None
+        self,
+        input_features: int,
+        other_features: int,
+        d_model: int,
+        nhead: int,
+        output_features: int,
+        mask: Optional[Union[AttentionMatrixMask, str]] = None,
+        bias: bool = True,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
     ) -> None:
-        factory_kwargs = {'device': device, 'dtype': dtype}
+        factory_kwargs = {"device": device, "dtype": dtype}
         q_mapping = LinearQmap(
             input_features=input_features,
             q_features=d_model,
             activation=None,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         kv_mapping = LinearKVmap(
             input_features=other_features,
@@ -121,18 +119,14 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
             v_features=d_model,
             activation=None,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         attention_mechanism = DotProductAttention(
-            q_features=d_model,
-            v_features=d_model,
-            mask=mask,
-            **factory_kwargs)
+            q_features=d_model, v_features=d_model, mask=mask, **factory_kwargs
+        )
 
-        head_reduction = ConcatHeads(
-            attention_dimension=d_model,
-            nhead=nhead,
-            **factory_kwargs)
+        head_reduction = ConcatHeads(attention_dimension=d_model, nhead=nhead, **factory_kwargs)
         attention_output_features = head_reduction.attention_output_features
 
         output_module = LinearOutputModule(
@@ -140,7 +134,8 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
             output_features=output_features,
             activation=None,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         super().__init__(
             q_mapping=q_mapping,
@@ -148,5 +143,5 @@ class ClassicalCrossAttentionModule(CrossAttentionModule):
             attention_mechanism=attention_mechanism,
             head_reduction=head_reduction,
             output_module=output_module,
-            nhead=nhead
+            nhead=nhead,
         )

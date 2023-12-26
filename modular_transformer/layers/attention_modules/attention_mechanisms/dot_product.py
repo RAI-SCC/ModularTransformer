@@ -1,17 +1,17 @@
-import torch
 from math import sqrt
+from typing import Optional, Union
+
+import torch
+from torch import Tensor
+from torch.nn.functional import softmax
 
 from . import masking
 from .base import AttentionModule
-from torch.nn.functional import softmax
-
-from typing import Optional, Union
-from torch import Tensor
 from .masking import AttentionMatrixMask, TriangularMask
 
 __all__ = [
-    'DotProductAttention',
-    'MaskedDotProductAttention',
+    "DotProductAttention",
+    "MaskedDotProductAttention",
 ]
 
 
@@ -24,19 +24,17 @@ class DotProductAttention(AttentionModule):
         :param v_features Optional[int]: number of features of the v-component (i.e. third) input (default: q_features)
         :param mask Optional[AttentionMatrixMask]: mask for masked attention (default: None)
     """
+
     def __init__(
-            self,
-            q_features: int,
-            v_features: Optional[int] = None,
-            mask: Optional[Union[AttentionMatrixMask, str]] = None,
-            **kwargs
+        self,
+        q_features: int,
+        v_features: Optional[int] = None,
+        mask: Optional[Union[AttentionMatrixMask, str]] = None,
+        **kwargs,
     ) -> None:
         self.mask = getattr(masking, mask)() if isinstance(mask, str) else mask
 
-        super().__init__(
-            q_features=q_features,
-            v_features=v_features
-        )
+        super().__init__(q_features=q_features, v_features=v_features)
 
     def _check_validity(self) -> None:
         # q_features and k_features are identical
@@ -49,7 +47,9 @@ class DotProductAttention(AttentionModule):
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor) -> Tensor:
         scale = query.shape[-1]
-        attention_matrix = softmax(torch.div(torch.matmul(query, key.transpose(-1, -2)), sqrt(scale)), dim=-1)
+        attention_matrix = softmax(
+            torch.div(torch.matmul(query, key.transpose(-1, -2)), sqrt(scale)), dim=-1
+        )
         if self.mask is not None:
             attention_matrix = self.ma
         output = torch.matmul(attention_matrix, value)
@@ -68,17 +68,18 @@ class MaskedDotProductAttention(DotProductAttention):
         :param v_features Optional[int]: number of features of the v-component (i.e. third) input (default: q_features)
         :param mask Optional[AttentionMatrixMask]: mask for masked attention (default: TriangularMask())
     """
-    def __init__(
-            self,
-            q_features: int,
-            v_features: Optional[int] = None,
-            mask: Optional[Union[AttentionMatrixMask, str]] = TriangularMask(),
-            **kwargs
-    ) -> None:
-        self.mask = getattr(masking, mask)() if isinstance(mask, str) else mask
 
-        super().__init__(
-            q_features=q_features,
-            v_features=v_features,
-            mask=mask
+    def __init__(
+        self,
+        q_features: int,
+        v_features: Optional[int] = None,
+        mask: Optional[Union[AttentionMatrixMask, str]] = None,
+        **kwargs,
+    ) -> None:
+        self.mask = (
+            getattr(masking, mask)()
+            if isinstance(mask, str)
+            else (mask if mask is not None else TriangularMask())
         )
+
+        super().__init__(q_features=q_features, v_features=v_features, mask=mask)

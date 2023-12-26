@@ -1,2 +1,9 @@
-from .base import SelfAttentionModule, CrossAttentionModule
-from .classical import ClassicalSelfAttentionModule, ClassicalCrossAttentionModule
+from .base import CrossAttentionModule, SelfAttentionModule
+from .classical import ClassicalCrossAttentionModule, ClassicalSelfAttentionModule
+
+__all__ = [
+    "SelfAttentionModule",
+    "CrossAttentionModule",
+    "ClassicalSelfAttentionModule",
+    "ClassicalCrossAttentionModule",
+]

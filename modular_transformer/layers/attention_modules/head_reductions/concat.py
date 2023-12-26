@@ -1,9 +1,9 @@
-from .base import HeadReduction
-
 from torch import Tensor
 
+from .base import HeadReduction
+
 __all__ = [
-    'ConcatHeads',
+    "ConcatHeads",
 ]
 
 

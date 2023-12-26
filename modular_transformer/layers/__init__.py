@@ -1,3 +1,11 @@
-from .base import TransformerEncoderLayer, TransformerDecoderLayer
 from .attention_modules import output_modules
-from .classical import ClassicalTransformerEncoderLayer, ClassicalTransformerDecoderLayer
+from .base import TransformerDecoderLayer, TransformerEncoderLayer
+from .classical import ClassicalTransformerDecoderLayer, ClassicalTransformerEncoderLayer
+
+__all__ = [
+    "TransformerEncoderLayer",
+    "TransformerDecoderLayer",
+    "ClassicalTransformerEncoderLayer",
+    "ClassicalTransformerDecoderLayer",
+    "output_modules",
+]

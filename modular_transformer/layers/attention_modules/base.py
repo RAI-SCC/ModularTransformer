@@ -1,18 +1,17 @@
 import copy
+
 import torch
+from torch import Tensor
 from torch.nn import Module
 
-from .qkv_maps import Qmap, KVmap, QKVmap
 from .attention_mechanisms import AttentionModule
 from .head_reductions import HeadReduction
 from .output_modules import OutputModule
-
-from torch import Tensor
-
+from .qkv_maps import KVmap, QKVmap, Qmap
 
 __all__ = [
-    'SelfAttentionModule',
-    'CrossAttentionModule',
+    "SelfAttentionModule",
+    "CrossAttentionModule",
 ]
 
 
@@ -30,13 +29,14 @@ class SelfAttentionModule(Module):
         :param output_module OutputModule: maps the recombined output to the output dimension
         :param nhead int: number of identical heads to create
     """
+
     def __init__(
-            self,
-            qkv_mapping: QKVmap,
-            attention_mechanism: AttentionModule,
-            head_reduction: HeadReduction,
-            output_module: OutputModule,
-            nhead: int = 1,
+        self,
+        qkv_mapping: QKVmap,
+        attention_mechanism: AttentionModule,
+        head_reduction: HeadReduction,
+        output_module: OutputModule,
+        nhead: int = 1,
     ):
         super().__init__()
         self._nhead = nhead
@@ -59,8 +59,13 @@ class SelfAttentionModule(Module):
         """Checks consistency of the components"""
         assert self.qkv_mappings[0].q_features == self.attention_mechanisms[0].q_features
         assert self.head_reduction.nhead == self._nhead
-        assert self.attention_mechanisms[0].output_features == self.head_reduction.attention_dimension
-        assert self.head_reduction.attention_output_features == self.output_module.attention_output_features
+        assert (
+            self.attention_mechanisms[0].output_features == self.head_reduction.attention_dimension
+        )
+        assert (
+            self.head_reduction.attention_output_features
+            == self.output_module.attention_output_features
+        )
 
     def forward(self, input_: Tensor) -> Tensor:
         """
@@ -94,13 +99,13 @@ class CrossAttentionModule(Module):
     """
 
     def __init__(
-            self,
-            q_mapping: Qmap,
-            kv_mapping: KVmap,
-            attention_mechanism: AttentionModule,
-            head_reduction: HeadReduction,
-            output_module: OutputModule,
-            nhead: int = 1,
+        self,
+        q_mapping: Qmap,
+        kv_mapping: KVmap,
+        attention_mechanism: AttentionModule,
+        head_reduction: HeadReduction,
+        output_module: OutputModule,
+        nhead: int = 1,
     ):
         super().__init__()
         self._nhead = nhead
@@ -131,7 +136,10 @@ class CrossAttentionModule(Module):
         assert self.kv_mappings[0].v_features == self.attention_mechanism.v_features
         assert self.head_reduction.nhead == self._nhead
         assert self.attention_mechanism.output_features == self.head_reduction.attention_dimension
-        assert self.head_reduction.attention_output_features == self.output_module.attention_output_features
+        assert (
+            self.head_reduction.attention_output_features
+            == self.output_module.attention_output_features
+        )
 
     def forward(self, input_: Tensor, other: Tensor) -> Tensor:
         """

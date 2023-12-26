@@ -1,15 +1,14 @@
 import copy
-import torch
-from torch.nn import Module, ModuleList
-
-from .layers import TransformerEncoderLayer, TransformerDecoderLayer
-from .layers.attention_modules.output_modules import OutputModule
 
 from torch import Tensor
+from torch.nn import Module, ModuleList
+
+from .layers import TransformerDecoderLayer, TransformerEncoderLayer
+from .layers.attention_modules.output_modules import OutputModule
 
 __all__ = [
-    'Transformer',
-    'ParallelTransformer',
+    "Transformer",
+    "ParallelTransformer",
 ]
 
 
@@ -28,18 +27,23 @@ class Transformer(Module):
         :param num_encoder_layers int: number of encoder layers
         :param num_decoder_layers int: number of decoder layers
     """
+
     def __init__(
-            self,
-            encoder_layer: TransformerEncoderLayer,
-            decoder_layer: TransformerDecoderLayer,
-            output_layer: OutputModule,
-            num_encoder_layers: int = 1,
-            num_decoder_layers: int = 1
+        self,
+        encoder_layer: TransformerEncoderLayer,
+        decoder_layer: TransformerDecoderLayer,
+        output_layer: OutputModule,
+        num_encoder_layers: int = 1,
+        num_decoder_layers: int = 1,
     ) -> None:
         super().__init__()
 
-        self.encoder_layers = ModuleList([copy.deepcopy(encoder_layer) for i in range(num_encoder_layers)])
-        self.decoder_layers = ModuleList([copy.deepcopy(decoder_layer) for i in range(num_decoder_layers)])
+        self.encoder_layers = ModuleList(
+            [copy.deepcopy(encoder_layer) for i in range(num_encoder_layers)]
+        )
+        self.decoder_layers = ModuleList(
+            [copy.deepcopy(decoder_layer) for i in range(num_decoder_layers)]
+        )
         self.output_module = output_layer
 
         self._check_validity()
@@ -47,7 +51,9 @@ class Transformer(Module):
     def _check_validity(self) -> None:
         """Checks consistency of the components"""
         assert self.encoder_layers[-1].output_features == self.decoder_layers[0].other_features
-        assert self.decoder_layers[-1].output_features == self.output_module.attention_output_features
+        assert (
+            self.decoder_layers[-1].output_features == self.output_module.attention_output_features
+        )
 
         if len(self.encoder_layers) > 1:
             for l1, l2 in zip(self.encoder_layers[:-1], self.encoder_layers[1:]):
@@ -109,7 +115,7 @@ class ParallelTransformer(Transformer):
             decoder_layer=decoder_layer,
             output_layer=output_layer,
             num_encoder_layers=num_layers,
-            num_decoder_layers=num_layers
+            num_decoder_layers=num_layers,
         )
 
     def forward(self, encoder_input: Tensor, decoder_input: Tensor) -> Tensor:

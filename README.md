@@ -425,5 +425,9 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
 # Installation
 
 ```bash
+python -m venv venv
+source venv/bin/activate
 pip install -e .
 ```
+
+You can run the ruff linter using `ruff --fix` and the ruff formatter using `ruff format`.

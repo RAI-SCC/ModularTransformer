@@ -1,12 +1,12 @@
-import torch
 from abc import ABC, abstractmethod
-
 from typing import Optional
+
+import torch
 from torch import Tensor
 from torch.nn import Module
 
 __all__ = [
-    'AttentionModule',
+    "AttentionModule",
 ]
 
 
@@ -30,14 +30,15 @@ class AttentionModule(Module, ABC):
     The method _check_validity() is called at the end of the super.__init__ method (which is why it should be call last)
     and can be implemented to ensure consistency of the created module. By default there are no checks.
     """
+
     def __init__(
-            self,
-            q_features: int,
-            k_features: Optional[int] = None,
-            v_features: Optional[int] = None,
-            device: Optional[torch.device] = None,
-            dtype: Optional[torch.dtype] = None,
-            **kwargs
+        self,
+        q_features: int,
+        k_features: Optional[int] = None,
+        v_features: Optional[int] = None,
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
+        **kwargs,
     ) -> None:
         super().__init__()
         self.q_features = q_features

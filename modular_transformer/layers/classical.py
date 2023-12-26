@@ -1,17 +1,17 @@
+from typing import Callable, Optional, Union
+
 import torch
+from torch import Tensor
 from torch.nn import ReLU
 
-from .base import TransformerEncoderLayer, TransformerDecoderLayer
-from .attention_modules import ClassicalSelfAttentionModule, ClassicalCrossAttentionModule
-from .attention_modules.output_modules import DoubleLinearOutputModule
+from .attention_modules import ClassicalCrossAttentionModule, ClassicalSelfAttentionModule
 from .attention_modules.attention_mechanisms.masking import AttentionMatrixMask
-
-from typing import Optional, Union, Callable
-from torch import Tensor
+from .attention_modules.output_modules import DoubleLinearOutputModule
+from .base import TransformerDecoderLayer, TransformerEncoderLayer
 
 __all__ = [
-    'ClassicalTransformerEncoderLayer',
-    'ClassicalTransformerDecoderLayer',
+    "ClassicalTransformerEncoderLayer",
+    "ClassicalTransformerDecoderLayer",
 ]
 
 
@@ -33,22 +33,23 @@ class ClassicalTransformerEncoderLayer(TransformerEncoderLayer):
         :param device Optional[torch.device]: computation device the module is initialized on
         :param dtype Optional[torch.dtype]: data type of the module
     """
+
     def __init__(
-            self,
-            input_features: int,
-            d_model: int,
-            nhead: int,
-            dim_feedforward: int,
-            output_features: int,
-            mask: Optional[Union[AttentionMatrixMask, str]] = None,
-            bias: bool = True,
-            layer_norm: bool = True,
-            dropout: float = 0.,
-            activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = ReLU(),
-            device: Optional[torch.device] = None,
-            dtype: Optional[torch.dtype] = None
+        self,
+        input_features: int,
+        d_model: int,
+        nhead: int,
+        dim_feedforward: int,
+        output_features: int,
+        mask: Optional[Union[AttentionMatrixMask, str]] = None,
+        bias: bool = True,
+        layer_norm: bool = True,
+        dropout: float = 0.0,
+        activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = ReLU(),
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
     ) -> None:
-        factory_kwargs = {'device': device, 'dtype': dtype}
+        factory_kwargs = {"device": device, "dtype": dtype}
 
         self_attention_layer = ClassicalSelfAttentionModule(
             input_features=input_features,
@@ -57,7 +58,8 @@ class ClassicalTransformerEncoderLayer(TransformerEncoderLayer):
             output_features=input_features,
             mask=mask,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         output_layer = DoubleLinearOutputModule(
             attention_output_features=input_features,
@@ -65,7 +67,8 @@ class ClassicalTransformerEncoderLayer(TransformerEncoderLayer):
             output_features=output_features,
             activation=activation,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         super().__init__(
             self_attention_layer=self_attention_layer,
@@ -73,7 +76,8 @@ class ClassicalTransformerEncoderLayer(TransformerEncoderLayer):
             residual_connection=True,
             layer_norm=layer_norm,
             dropout=dropout,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
 
 class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
@@ -97,22 +101,22 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
     """
 
     def __init__(
-            self,
-            input_features: int,
-            other_features: int,
-            attention_dimension: int,
-            nhead: int,
-            dim_feedforward: int,
-            output_features: int,
-            mask: Optional[Union[AttentionMatrixMask, str]] = None,
-            bias: bool = True,
-            layer_norm: bool = True,
-            dropout: float = 0.,
-            activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = ReLU(),
-            device: Optional[torch.device] = None,
-            dtype: Optional[torch.dtype] = None
+        self,
+        input_features: int,
+        other_features: int,
+        attention_dimension: int,
+        nhead: int,
+        dim_feedforward: int,
+        output_features: int,
+        mask: Optional[Union[AttentionMatrixMask, str]] = None,
+        bias: bool = True,
+        layer_norm: bool = True,
+        dropout: float = 0.0,
+        activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = ReLU(),
+        device: Optional[torch.device] = None,
+        dtype: Optional[torch.dtype] = None,
     ):
-        factory_kwargs = {'device': device, 'dtype': dtype}
+        factory_kwargs = {"device": device, "dtype": dtype}
 
         self_attention_layer = ClassicalSelfAttentionModule(
             input_features=input_features,
@@ -121,7 +125,8 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
             output_features=input_features,
             mask=mask,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         cross_attention_layer = ClassicalCrossAttentionModule(
             input_features=input_features,
@@ -131,7 +136,8 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
             output_features=input_features,
             mask=None,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         output_layer = DoubleLinearOutputModule(
             attention_output_features=input_features,
@@ -139,7 +145,8 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
             output_features=output_features,
             activation=activation,
             bias=bias,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
 
         super().__init__(
             self_attention_layer=self_attention_layer,
@@ -148,4 +155,5 @@ class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
             residual_connection=True,
             layer_norm=layer_norm,
             dropout=dropout,
-            **factory_kwargs)
+            **factory_kwargs,
+        )
