@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "modular-transformer"
+version = "0.1.0"
+requires-python = ">=3.8"
+authors = [
+    { name = "Arvid Weyrauch", email = "arvid.weyrauch@kit.edu" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "polars >=0.20.2,<0.21",
+    "torch >=2.1.0,<3.0.0",
+    "numpy >=1.26.2,<2.0.0",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/modular_transformer",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+select = [
+    # pyflakes
+    "F",
+    # pycodestyle
+    "E", "W",
+    # flake8-builtins
+    "A",
+    # flake8-bugbear
+    "B",
+    # flake8-comprehensions
+    "C4",
+    # flake8-simplify
+    "SIM",
+    # flake8-unused-arguments
+    "ARG",
+    # pylint
+    "PL",
+    # tidy
+    "TID",
+    # isort
+    "I",
+    # pep8-naming
+    "N",
+    # pyupgrade
+    "UP"
+]
+ignore = [
+    # may cause conflicts with ruff formatter
+    "E501",
+    "W191",
+    # too many arguments in function definition
+    "PLR0913",
+    # unused method argument
+    "ARG002",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
