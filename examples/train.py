@@ -22,16 +22,19 @@ def train_one_epoch(
     for inputs, labels in tqdm(training_loader):
         optimizer.zero_grad()
         assert not inputs.isnan().any()
-        inputs = inputs.unsqueeze(-1)
+        # inputs = inputs.unsqueeze(-1)
         size_batch = inputs.shape[0]
         assert size_batch <= batch_size
         # other = torch.range(0, inputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
-        other = torch.range(0, inputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / inputs.shape[1]
-        assert inputs.shape == (size_batch, input_length, 1)
-        outputs = model(inputs, other)
+        # other = torch.range(0, inputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / inputs.shape[1]
+        # assert inputs.shape == (size_batch, input_length, 1)
+        labels_masked = labels.clone()
+        labels_masked[:, :, 0] = 0.
+        outputs = model(inputs, labels_masked)
+        assert outputs.shape == (size_batch, output_length, 1)
         assert not outputs.isnan().any()
 
-        loss = loss_fn(outputs.squeeze(-1), labels)
+        loss = loss_fn(outputs.squeeze(-1), labels[:, :, 0])
         loss.backward()
         optimizer.step()
 
@@ -42,46 +45,24 @@ def train_one_epoch(
     return epoch_loss
 
 
-def evaluate_model(model, test_loader: DataLoader):
-    running_vloss_mse = 0.0
-    running_vloss_mae = 0.0
-    model.eval()
-    with torch.no_grad():
-        for _, vdata in enumerate(test_loader):
-            vinputs, vlabels = vdata
-            vinputs = vinputs.unsqueeze(-1)
-
-            size_batch = vinputs.shape[0]
-            assert size_batch <= batch_size
-            # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
-            other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
-            assert vinputs.shape == (size_batch, input_length, 1)
-            voutputs = model(vinputs, other)
-            vloss_mse = torch.nn.MSELoss()(voutputs.squeeze(-1), vlabels)
-            vloss_mae = torch.nn.L1Loss()(voutputs.squeeze(-1), vlabels)
-            running_vloss_mse += vloss_mse
-            running_vloss_mae += vloss_mae
-
-    mse = running_vloss_mse / len(test_loader)
-    mae = running_vloss_mae / len(test_loader)
-    return mse, mae
-
-
 @torch.no_grad()
 def plot_samples(model: ClassicalTransformer, test_loader: DataLoader):
     n = 0
     import matplotlib.pyplot as plt
     for vinputs, vlabels in test_loader:
-        vinputs = vinputs.unsqueeze(-1)
+        # vinputs = vinputs.unsqueeze(-1)
 
         size_batch = vinputs.shape[0]
         assert size_batch <= batch_size
         # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
-        other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
-        assert vinputs.shape == (size_batch, input_length, 1)
-        voutputs = model(vinputs, other)
-        vinputs = vinputs.squeeze(-1)
-        voutputs = voutputs.squeeze(-1)
+        # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
+        # assert vinputs.shape == (size_batch, input_length, 1)
+        vlabels_masked = vlabels.clone()
+        vlabels_masked[:, :, 0] = 0.
+        voutputs = model(vinputs, vlabels_masked)
+        vinputs = vinputs[:, :, 0]
+        voutputs = voutputs[:, :, 0]
+        vlabels = vlabels[:, :, 0]
         # print("vinputs")
         # print(vinputs)
         # print("voutputs")
@@ -97,21 +78,48 @@ def plot_samples(model: ClassicalTransformer, test_loader: DataLoader):
             plt.plot(range(input_length, input_length + output_length), voutputs[i, :].numpy(), label="outputs")
             plt.plot(range(input_length, input_length + output_length), vlabels[i, :].numpy(), label="ground truth")
             plt.legend()
+            plt.xticks(range(0, input_length + output_length, 2))
             plt.show()
             # time.sleep(5)
             n += 1
 
 
-input_length = 10
-output_length = 10
+# def evaluate_model(model, test_loader: DataLoader):
+#     running_vloss_mse = 0.0
+#     running_vloss_mae = 0.0
+#     model.eval()
+#     with torch.no_grad():
+#         for _, vdata in enumerate(test_loader):
+#             vinputs, vlabels = vdata
+#
+#             size_batch = vinputs.shape[0]
+#             assert size_batch <= batch_size
+#             # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
+#             # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
+#             # assert vinputs.shape == (size_batch, input_length, 1)
+#             # vlabels_masked = vlabels
+#             # vlabels_masked[:, :, 0] = 0.
+#             voutputs = model(vinputs, vlabels)
+#             vloss_mse = torch.nn.MSELoss()(voutputs.squeeze(-1), vlabels[:, :, 0])
+#             vloss_mae = torch.nn.L1Loss()(voutputs.squeeze(-1), vlabels[:, :, 0])
+#             running_vloss_mse += vloss_mse
+#             running_vloss_mae += vloss_mae
+#
+#     mse = running_vloss_mse / len(test_loader)
+#     mae = running_vloss_mae / len(test_loader)
+#     return mse, mae
+
+
+input_length = 4
+output_length = 4
 
 model = ClassicalTransformer(
-    input_features=1,
+    input_features=3,
     output_features=1,
     d_model=10,
     nhead=1,
-    dim_feedforward=10,
-    num_encoder_layers=4,
+    dim_feedforward=200,
+    num_encoder_layers=1,
     num_decoder_layers=1,
     final_activation=None,
 )
@@ -119,36 +127,35 @@ model = ClassicalTransformer(
 print(model)
 print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
 
-epochs = 10
+epochs = 2000
 batch_size = 20
 
 data_train, data_test = get_data_electricity()
-train_loader = get_loader(
-    data_train,
-    input_length=input_length,
-    output_length=output_length,
-    batch_size=batch_size,
-)
-test_loader = get_loader(
-    data_test,
-    input_length=input_length,
-    output_length=output_length,
-    batch_size=batch_size,
-    shuffle=False,
-)
-# train_loader = get_loader_overfit(
+# train_loader = get_loader(
 #     data_train,
 #     input_length=input_length,
 #     output_length=output_length,
 #     batch_size=batch_size,
 # )
-# test_loader = train_loader
+# test_loader = get_loader(
+#     data_test,
+#     input_length=input_length,
+#     output_length=output_length,
+#     batch_size=batch_size,
+#     shuffle=False,
+# )
+train_loader = get_loader_overfit(
+    data_train,
+    input_length=input_length,
+    output_length=output_length,
+    batch_size=batch_size,
+)
+test_loader = train_loader
 
-learning_rate = 0.01
-momentum = 0.3
+learning_rate = 0.001
 # learning_rate = 0.001
 loss_fn = torch.nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 losses = []
 
@@ -165,14 +172,15 @@ for epoch in range(epochs):
     )
     losses.append(avg_loss)
 
-    mse_test, mae_test = evaluate_model(model, test_loader)
+    # mse_test, mae_test = evaluate_model(model, test_loader)
 
     # plot_samples(model, test_loader)
 
-    print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
+    # print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
 
 import matplotlib.pyplot as plt
-plt.plot(losses)
+import math
+plt.plot([math.log(x) for x in losses])
 plt.title("losses")
 plt.show()
 

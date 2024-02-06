@@ -1,5 +1,6 @@
 import polars as pl
 import torch
+import math
 from torch.utils.data import DataLoader
 
 
@@ -12,6 +13,17 @@ class TimeseriesDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.x) - (self.input_seq_len + self.output_seq_len)
 
+    @staticmethod
+    def _index_to_annotations(index: int):
+        # 15 minute intervals -> 96 per day
+        day = index // 96
+        time = index % 96
+        hour = time / 4  # float
+        x = math.cos(hour * 2 * 3.1415 / 24)
+        y = math.sin(hour * 2 * 3.1415 / 24)
+        # return [day, time, hour, x, y]
+        return [x, y]
+
     def __getitem__(self, index: int):
         sequence = self.x[index : index + self.input_seq_len]
         next_elements = self.x[
@@ -19,7 +31,20 @@ class TimeseriesDataset(torch.utils.data.Dataset):
         ]
         assert sequence.shape[0] == self.input_seq_len
         assert next_elements.shape[0] == self.output_seq_len
-        return (sequence, next_elements)
+        annotations = [self._index_to_annotations(i) for i in range(index, index + self.input_seq_len)]
+        annotations = torch.Tensor(annotations)
+        annotations_next_elements = [
+            self._index_to_annotations(i)
+            for i in range(index + self.input_seq_len, index + self.input_seq_len + self.output_seq_len)
+        ]
+        annotations_next_elements = torch.Tensor(annotations_next_elements)
+        sequence = sequence.unsqueeze(-1)
+        next_elements = next_elements.unsqueeze(-1)
+
+        return (
+            torch.cat([sequence, annotations], dim=1),
+            torch.cat([next_elements, annotations_next_elements], dim=1)
+        )
 
 
 class TimeseriesDatasetMultivariate(torch.utils.data.Dataset):
@@ -30,13 +55,14 @@ class TimeseriesDatasetMultivariate(torch.utils.data.Dataset):
         self.output_seq_len = output_seq_len
 
     def __len__(self):
-        return (len(self.x) - (self.input_seq_len + self.output_seq_len)) / self.dimension
+        return (len(self.x) - (self.input_seq_len + self.output_seq_len)) // self.dimension
 
     def __getitem__(self, index: int):
         sequence = self.x[index : index + self.input_seq_len * self.dimension]
         next_elements = self.x[
             index + self.input_seq_len : index + self.input_seq_len + self.output_seq_len
         ]
+        next_elements_converted = next_elements.view(self.output_seq_len, self.dimension)
         assert sequence.shape[0] == self.input_seq_len
         assert next_elements.shape[0] == self.output_seq_len
         return (sequence, next_elements)
@@ -76,7 +102,9 @@ def get_loader_overfit(
     batch_size: int,
 ) -> DataLoader:
     dataset = TimeseriesDataset(data[:input_length * 2 + 1], input_length, output_length)
-    return DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    assert len(loader) == 1
+    return loader
 
 
 def get_loader_multivariate(
