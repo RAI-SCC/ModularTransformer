@@ -110,13 +110,13 @@ def plot_samples(model: ClassicalTransformer, test_loader: DataLoader):
 #     return mse, mae
 
 
-input_length = 4
-output_length = 4
+input_length = 20
+output_length = 50
 
 model = ClassicalTransformer(
     input_features=3,
     output_features=1,
-    d_model=10,
+    d_model=16,
     nhead=1,
     dim_feedforward=200,
     num_encoder_layers=1,
@@ -127,32 +127,32 @@ model = ClassicalTransformer(
 print(model)
 print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
 
-epochs = 2000
+epochs = 10
 batch_size = 20
 
 data_train, data_test = get_data_electricity()
-# train_loader = get_loader(
-#     data_train,
-#     input_length=input_length,
-#     output_length=output_length,
-#     batch_size=batch_size,
-# )
-# test_loader = get_loader(
-#     data_test,
-#     input_length=input_length,
-#     output_length=output_length,
-#     batch_size=batch_size,
-#     shuffle=False,
-# )
-train_loader = get_loader_overfit(
+train_loader = get_loader(
     data_train,
     input_length=input_length,
     output_length=output_length,
     batch_size=batch_size,
 )
-test_loader = train_loader
+test_loader = get_loader(
+    data_test,
+    input_length=input_length,
+    output_length=output_length,
+    batch_size=batch_size,
+    shuffle=False,
+)
+# train_loader = get_loader_overfit(
+#     data_train,
+#     input_length=input_length,
+#     output_length=output_length,
+#     batch_size=batch_size,
+# )
+# test_loader = train_loader
 
-learning_rate = 0.001
+learning_rate = 0.005
 # learning_rate = 0.001
 loss_fn = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
