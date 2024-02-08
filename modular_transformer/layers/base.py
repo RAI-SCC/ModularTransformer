@@ -81,19 +81,20 @@ class TransformerEncoderLayer(Module):
     def forward(self, input_: Tensor) -> Tensor:
         """Applies the encoder layer"""
         # Self attention
+        # TODO: layer norm?
         x = self.self_attention_layer(input_)
         if self.residual_connection:
             x += input_
-        if self.layer_norm:
-            x = self.layer_norm1(x)
+        # if self.layer_norm:
+        #     x = self.layer_norm1(x)
         x = self.dropout(x)
 
         # Output layer
         output = self.output_layer(x)
         if self.residual_connection:
             output += x
-        if self.layer_norm:
-            output = self.layer_norm2(output)
+        # if self.layer_norm:
+        #     output = self.layer_norm2(output)
         output = self.dropout(output)
 
         return output
@@ -187,10 +188,11 @@ class TransformerDecoderLayer(Module):
         """Performs a decoder layer with the decoder input `input_` and hidden state `other`"""
         # Self-attention
         x = self.self_attention_layer(input_)
+        # TODO: layer norm???
         if self.residual_connection:
             x += input_
-        if self.layer_norm:
-            x = self.layer_norm1(x)
+        # if self.layer_norm:
+        #     x = self.layer_norm1(x)
         x = self.dropout(x)
 
         # Cross-attention
@@ -198,16 +200,16 @@ class TransformerDecoderLayer(Module):
             x = x + self.cross_attention_layer(x, other)
         else:
             x = self.cross_attention_layer(x, other)
-        if self.layer_norm:
-            x = self.layer_norm2(x)
+        # if self.layer_norm:
+        #     x = self.layer_norm2(x)
         x = self.dropout(x)
 
         # Output layer
         output = self.output_layer(x)
         if self.residual_connection:
             output += x
-        if self.layer_norm:
-            output = self.layer_norm3(output)
+        # if self.layer_norm:
+        #     output = self.layer_norm3(output)
         output = self.dropout(output)
 
         return output
