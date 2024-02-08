@@ -19,7 +19,7 @@ def train_one_epoch(
     running_loss = 0.0
     len_data = len(training_loader)
 
-    for inputs, labels in tqdm(training_loader):
+    for i, (inputs, labels) in enumerate(tqdm(training_loader)):
         optimizer.zero_grad()
         assert not inputs.isnan().any()
         # inputs = inputs.unsqueeze(-1)
@@ -39,9 +39,10 @@ def train_one_epoch(
         optimizer.step()
 
         running_loss += loss.item()
+        if i % 1000 == 999:
+            print(f"Running loss until batch {i}: {running_loss / (i + 1)}")
 
     epoch_loss = running_loss / len_data
-    print(f"{epoch_loss=}")
     return epoch_loss
 
 
@@ -84,34 +85,34 @@ def plot_samples(model: ClassicalTransformer, test_loader: DataLoader):
             n += 1
 
 
-# def evaluate_model(model, test_loader: DataLoader):
-#     running_vloss_mse = 0.0
-#     running_vloss_mae = 0.0
-#     model.eval()
-#     with torch.no_grad():
-#         for _, vdata in enumerate(test_loader):
-#             vinputs, vlabels = vdata
-#
-#             size_batch = vinputs.shape[0]
-#             assert size_batch <= batch_size
-#             # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
-#             # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
-#             # assert vinputs.shape == (size_batch, input_length, 1)
-#             # vlabels_masked = vlabels
-#             # vlabels_masked[:, :, 0] = 0.
-#             voutputs = model(vinputs, vlabels)
-#             vloss_mse = torch.nn.MSELoss()(voutputs.squeeze(-1), vlabels[:, :, 0])
-#             vloss_mae = torch.nn.L1Loss()(voutputs.squeeze(-1), vlabels[:, :, 0])
-#             running_vloss_mse += vloss_mse
-#             running_vloss_mae += vloss_mae
-#
-#     mse = running_vloss_mse / len(test_loader)
-#     mae = running_vloss_mae / len(test_loader)
-#     return mse, mae
+def evaluate_model(model, test_loader: DataLoader):
+    running_vloss_mse = 0.0
+    running_vloss_mae = 0.0
+    model.eval()
+    with torch.no_grad():
+        for _, vdata in enumerate(test_loader):
+            vinputs, vlabels = vdata
+
+            size_batch = vinputs.shape[0]
+            assert size_batch <= batch_size
+            # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
+            # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
+            # assert vinputs.shape == (size_batch, input_length, 1)
+            # vlabels_masked = vlabels
+            # vlabels_masked[:, :, 0] = 0.
+            voutputs = model(vinputs, vlabels)
+            vloss_mse = torch.nn.MSELoss()(voutputs.squeeze(-1), vlabels[:, :, 0])
+            vloss_mae = torch.nn.L1Loss()(voutputs.squeeze(-1), vlabels[:, :, 0])
+            running_vloss_mse += vloss_mse
+            running_vloss_mae += vloss_mae
+
+    mse = running_vloss_mse / len(test_loader)
+    mae = running_vloss_mae / len(test_loader)
+    return mse, mae
 
 
-input_length = 20
-output_length = 50
+input_length = 50
+output_length = 150
 
 model = ClassicalTransformer(
     input_features=3,
@@ -157,7 +158,9 @@ learning_rate = 0.005
 loss_fn = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-losses = []
+mses_train = []
+mses_test = []
+maes_test = []
 
 start_time = datetime.now()
 for epoch in range(epochs):
@@ -170,17 +173,26 @@ for epoch in range(epochs):
         optimizer,
         train_loader,
     )
-    losses.append(avg_loss)
+    mses_train.append(avg_loss)
 
-    # mse_test, mae_test = evaluate_model(model, test_loader)
+    mse_test, mae_test = evaluate_model(model, test_loader)
+    mses_test.append(mse_test)
+    maes_test.append(mae_test)
 
     # plot_samples(model, test_loader)
 
-    # print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
+    print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
+
 
 import matplotlib.pyplot as plt
 import math
-plt.plot([math.log(x) for x in losses])
+plt.plot([math.log(x) for x in mses_train], label="train mse")
+plt.plot([math.log(x) for x in mses_test], label="test mse")
+plt.title("losses (log scale)")
+plt.show()
+
+plt.plot(mses_train, label="train mse")
+plt.plot(mses_test, label="test mse")
 plt.title("losses")
 plt.show()
 
