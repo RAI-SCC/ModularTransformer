@@ -10,6 +10,12 @@ from modular_transformer.classical import ClassicalTransformer
 
 from tqdm import tqdm
 
+from modular_transformer.taylor import TaylorTransformer
+
+
+def moving_average(x, w):
+    return [sum(x[i:i + w]) / w for i in range(len(x) - w + 1)]
+
 
 def train_one_epoch(
     model: torch.nn.Module,
@@ -18,6 +24,7 @@ def train_one_epoch(
     training_loader: DataLoader,
 ):
     running_loss = 0.0
+    losses = []
     len_data = len(training_loader)
 
     for i, (inputs, labels) in enumerate(tqdm(training_loader)):
@@ -40,10 +47,16 @@ def train_one_epoch(
         optimizer.step()
 
         running_loss += loss.item()
-        if i % 1000 == 999:
+        if i % 1000 == 0:
             print(f"Running loss until batch {i}: {running_loss / (i + 1)}")
+        losses.append(loss.item())
 
     epoch_loss = running_loss / len_data
+    # print(f"LOSSES TRAIN: {losses}")
+    import matplotlib.pyplot as plt
+    plt.plot(moving_average(losses, 50))
+    plt.title("LOSSES TRAIN")
+    plt.show()
     return epoch_loss
 
 
@@ -87,39 +100,48 @@ def plot_samples(model: ClassicalTransformer, test_loader: DataLoader, title: st
         # time.sleep(5)
 
 
+@torch.no_grad()
 def evaluate_model(model, test_loader: DataLoader):
     running_vloss_mse = 0.0
     running_vloss_mae = 0.0
+    losses = []
     model.eval()
-    with torch.no_grad():
-        for _, vdata in enumerate(test_loader):
-            vinputs, vlabels = vdata
+    for vinputs, vlabels in test_loader:
+        size_batch = vinputs.shape[0]
+        assert size_batch <= batch_size
+        # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
+        # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
+        # assert vinputs.shape == (size_batch, input_length, 1)
+        # vlabels_masked = vlabels
+        # vlabels_masked[:, :, 0] = 0.
+        voutputs = model(vinputs, vlabels)
+        vloss_mse = torch.nn.MSELoss()(voutputs.squeeze(-1), vlabels[:, :, 0])
+        vloss_mae = torch.nn.L1Loss()(voutputs.squeeze(-1), vlabels[:, :, 0])
+        running_vloss_mse += vloss_mse
+        running_vloss_mae += vloss_mae
+        losses.append(vloss_mse.item())
 
-            size_batch = vinputs.shape[0]
-            assert size_batch <= batch_size
-            # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
-            # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
-            # assert vinputs.shape == (size_batch, input_length, 1)
-            # vlabels_masked = vlabels
-            # vlabels_masked[:, :, 0] = 0.
-            voutputs = model(vinputs, vlabels)
-            vloss_mse = torch.nn.MSELoss()(voutputs.squeeze(-1), vlabels[:, :, 0])
-            vloss_mae = torch.nn.L1Loss()(voutputs.squeeze(-1), vlabels[:, :, 0])
-            running_vloss_mse += vloss_mse
-            running_vloss_mae += vloss_mae
+    mean_losses = sum(losses) / len(losses)
+    variance_losses = sum((x - mean_losses) ** 2 for x in losses) / len(losses)
 
     mse = running_vloss_mse / len(test_loader)
     mae = running_vloss_mae / len(test_loader)
+    # print(f"LOSSES TEST: {losses}")
+    import matplotlib.pyplot as plt
+    plt.plot(moving_average(losses, 50))
+    plt.title("LOSSES TEST")
+    plt.show()
     return mse, mae
 
 
 input_length = 20
 output_length = 60
 
-model = ClassicalTransformer(
+model = TaylorTransformer(
     input_features=3,
     output_features=1,
-    d_model=16,
+    sequence_length=input_length,
+    d_model=5,
     nhead=1,
     dim_feedforward=200,
     num_encoder_layers=1,
@@ -130,7 +152,7 @@ model = ClassicalTransformer(
 print(model)
 print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
 
-epochs = 1
+epochs = 3
 batch_size = 20
 
 data_train, data_test = get_data_electricity()
@@ -162,7 +184,7 @@ test_loader_shuffle = get_loader(
 # )
 # test_loader = train_loader
 
-learning_rate = 0.005
+learning_rate = 0.0005
 # learning_rate = 0.001
 loss_fn = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
