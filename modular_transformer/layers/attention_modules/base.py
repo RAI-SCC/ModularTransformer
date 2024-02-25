@@ -2,7 +2,7 @@ import copy
 
 import torch
 from torch import Tensor
-from torch.nn import Module
+from torch.nn import Module, ModuleList
 
 from .attention_mechanisms import AttentionModule
 from .head_reductions import HeadReduction
@@ -40,8 +40,8 @@ class SelfAttentionModule(Module):
     ):
         super().__init__()
         self._nhead = nhead
-        self.qkv_mappings = [copy.deepcopy(qkv_mapping) for _ in range(nhead)]
-        self.attention_mechanisms = [copy.deepcopy(attention_mechanism) for _ in range(nhead)]
+        self.qkv_mappings = ModuleList([copy.deepcopy(qkv_mapping) for _ in range(nhead)])
+        self.attention_mechanisms = ModuleList([copy.deepcopy(attention_mechanism) for _ in range(nhead)])
         self.head_reduction = head_reduction
         self.output_module = output_module
 
@@ -109,8 +109,8 @@ class CrossAttentionModule(Module):
     ):
         super().__init__()
         self._nhead = nhead
-        self.q_mappings = [copy.deepcopy(q_mapping) for _ in range(nhead)]
-        self.kv_mappings = [copy.deepcopy(kv_mapping) for _ in range(nhead)]
+        self.q_mappings = ModueList([copy.deepcopy(q_mapping) for _ in range(nhead)])
+        self.kv_mappings = ModuleList([copy.deepcopy(kv_mapping) for _ in range(nhead)])
         self.attention_mechanism = attention_mechanism
         self.head_reduction = head_reduction
         self.output_module = output_module
