@@ -1,11 +1,14 @@
 import random
 import time
+import matplotlib.pyplot as plt
+import math
 from datetime import datetime
 
 import torch
 from torch.utils.data import DataLoader
 
-from examples.data import get_data_electricity, get_loader, get_loader_overfit
+from examples.data import get_data_electricity, get_loader, get_loader_overfit, get_data_electricity_hourly
+from examples.util import mean_variance, save_model
 from modular_transformer.classical import ClassicalTransformer
 
 from tqdm import tqdm
@@ -23,12 +26,9 @@ def train_one_epoch(
     for i, (inputs, labels) in enumerate(tqdm(training_loader)):
         optimizer.zero_grad()
         assert not inputs.isnan().any()
-        # inputs = inputs.unsqueeze(-1)
         size_batch = inputs.shape[0]
         assert size_batch <= batch_size
-        # other = torch.range(0, inputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
-        # other = torch.range(0, inputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / inputs.shape[1]
-        # assert inputs.shape == (size_batch, input_length, 1)
+        assert inputs.shape == (size_batch, input_length, 3)
         labels_masked = labels.clone()
         labels_masked[:, :, 0] = 0.
         outputs = model(inputs, labels_masked)
@@ -58,9 +58,7 @@ def plot_samples(model: ClassicalTransformer, test_loader: DataLoader, title: st
 
         size_batch = vinputs.shape[0]
         assert size_batch <= batch_size
-        # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
-        # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
-        # assert vinputs.shape == (size_batch, input_length, 1)
+        assert vinputs.shape == (size_batch, input_length, 3)
         vlabels_masked = vlabels.clone()
         vlabels_masked[:, :, 0] = 0.
         voutputs = model(vinputs, vlabels_masked)
@@ -87,34 +85,30 @@ def plot_samples(model: ClassicalTransformer, test_loader: DataLoader, title: st
         # time.sleep(5)
 
 
+@torch.no_grad()
 def evaluate_model(model, test_loader: DataLoader):
-    running_vloss_mse = 0.0
-    running_vloss_mae = 0.0
+    losses_mse = []
+    losses_mae = []
     model.eval()
-    with torch.no_grad():
-        for _, vdata in enumerate(test_loader):
-            vinputs, vlabels = vdata
+    for vinputs, vlabels in test_loader:
+        size_batch = vinputs.shape[0]
+        assert size_batch <= batch_size
+        assert vinputs.shape == (size_batch, input_length, 3)
+        vlabels_masked = vlabels.clone()
+        vlabels_masked[:, :, 0] = 0.
+        voutputs = model(vinputs, vlabels_masked)
+        vloss_mse = torch.nn.MSELoss()(voutputs.squeeze(-1), vlabels[:, :, 0])
+        vloss_mae = torch.nn.L1Loss()(voutputs.squeeze(-1), vlabels[:, :, 0])
+        losses_mse.append(vloss_mse.item())
+        losses_mae.append(vloss_mae.item())
 
-            size_batch = vinputs.shape[0]
-            assert size_batch <= batch_size
-            # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1)
-            # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
-            # assert vinputs.shape == (size_batch, input_length, 1)
-            # vlabels_masked = vlabels
-            # vlabels_masked[:, :, 0] = 0.
-            voutputs = model(vinputs, vlabels)
-            vloss_mse = torch.nn.MSELoss()(voutputs.squeeze(-1), vlabels[:, :, 0])
-            vloss_mae = torch.nn.L1Loss()(voutputs.squeeze(-1), vlabels[:, :, 0])
-            running_vloss_mse += vloss_mse
-            running_vloss_mae += vloss_mae
-
-    mse = running_vloss_mse / len(test_loader)
-    mae = running_vloss_mae / len(test_loader)
-    return mse, mae
+    mean_mse, variance_mse = mean_variance(losses_mse)
+    mean_mae, variance_mae = mean_variance(losses_mae)
+    return mean_mse, variance_mse, mean_mae, variance_mae
 
 
 input_length = 20
-output_length = 60
+output_length = 10
 
 model = ClassicalTransformer(
     input_features=3,
@@ -130,15 +124,20 @@ model = ClassicalTransformer(
 print(model)
 print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
 
-epochs = 1
+epochs = 50
 batch_size = 20
+hourly = True
 
-data_train, data_test = get_data_electricity()
+if hourly:
+    data_train, data_test = get_data_electricity_hourly()
+else:
+    data_train, data_test = get_data_electricity()
 train_loader = get_loader(
     data_train,
     input_length=input_length,
     output_length=output_length,
     batch_size=batch_size,
+    positional_encoding=True
 )
 test_loader = get_loader(
     data_test,
@@ -146,6 +145,7 @@ test_loader = get_loader(
     output_length=output_length,
     batch_size=batch_size,
     shuffle=False,
+    positional_encoding=True
 )
 test_loader_shuffle = get_loader(
     data_test,
@@ -153,6 +153,7 @@ test_loader_shuffle = get_loader(
     output_length=output_length,
     batch_size=batch_size,
     shuffle=True,
+    positional_encoding=True
 )
 # train_loader = get_loader_overfit(
 #     data_train,
@@ -168,8 +169,10 @@ loss_fn = torch.nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 mses_train = []
-mses_test = []
-maes_test = []
+mses_test_mean = []
+mses_test_variance = []
+maes_test_mean = []
+maes_test_variance = []
 
 start_time = datetime.now()
 for epoch in range(epochs):
@@ -184,27 +187,52 @@ for epoch in range(epochs):
     )
     mses_train.append(avg_loss)
 
-    mse_test, mae_test = evaluate_model(model, test_loader)
-    mses_test.append(mse_test)
-    maes_test.append(mae_test)
+    mean_mse, variance_mse, mean_mae, variance_mae = evaluate_model(model, test_loader)
+    mses_test_mean.append(mean_mse)
+    mses_test_variance.append(variance_mse)
+    maes_test_mean.append(mean_mae)
+    maes_test_variance.append(variance_mae)
 
-    # plot_samples(model, test_loader)
+    print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
 
-    print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
+save_model(model, "transformer", str(input_length), str(output_length))
 
-
-import matplotlib.pyplot as plt
-import math
-plt.plot([math.log(x) for x in mses_train], label="train mse")
-plt.plot([math.log(x) for x in mses_test], label="test mse")
-plt.title("losses (log scale)")
-plt.show()
 
 plt.plot(mses_train, label="train mse")
-plt.plot(mses_test, label="test mse")
+plt.plot(mses_test_mean, label="test mse")
 plt.title("losses")
+plt.legend()
+plt.show()
+
+plt.plot(mses_test_variance, label="test mse variance")
+plt.title("q mse variance")
+plt.legend()
 plt.show()
 
 plot_samples(model, test_loader_shuffle, "test")
 
 plot_samples(model, train_loader, "train")
+num_params = sum(p.numel() for p in model.parameters())
+print(f"Number of parameters: {num_params}")
+duration = datetime.now() - start_time
+print(f"Duration: {duration}")
+
+import polars as pl
+metadata = pl.DataFrame(
+    {
+        "model_type": ["transformer"],
+        "input_length": [input_length],
+        "output_length": [output_length],
+        "epochs": [epochs],
+        "batch_size": [batch_size],
+        "learning_rate": [learning_rate],
+        "mses_train": [mses_train],
+        "mses_test_mean": [mses_test_mean],
+        "mses_test_variance": [mses_test_variance],
+        "maes_test_mean": [maes_test_mean],
+        "maes_test_variance": [maes_test_variance],
+        "num_params": [num_params],
+        "duration": [duration],
+    }
+)
+metadata.write_parquet("examples/model-weights/transformer-metadata.parquet")

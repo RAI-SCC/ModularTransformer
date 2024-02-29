@@ -81,7 +81,27 @@ def get_data_electricity() -> tuple[torch.Tensor, torch.Tensor]:
     x_np = normalized_x.to_numpy()
     x_tensor = torch.Tensor(x_np)
     x_len = len(x)
-    return x_tensor[: int(x_len * 0.8)], x_tensor[int(x_len * 0.8) :]
+    return x_tensor[: int(x_len * 0.6)], x_tensor[int(x_len * 0.6) :]
+
+
+def get_data_electricity_hourly() -> tuple[torch.Tensor, torch.Tensor]:
+    x_train, x_test = get_data_electricity()
+    # skip every 4 values
+    x_train = x_train[::4]
+    x_test = x_test[::4]
+    return x_train, x_test
+
+
+class NoPositionalEncoding(torch.utils.data.Dataset):
+    def __init__(self, dataset):
+        super().__init__()
+        self.dataset = dataset
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, i):
+        return self.dataset[i][0][:, 0].unsqueeze(-1), self.dataset[i][1][:, 0].unsqueeze(-1)
 
 
 def get_loader(
@@ -90,8 +110,12 @@ def get_loader(
     output_length: int,
     batch_size: int,
     shuffle: bool = True,
+    positional_encoding: bool = True
 ) -> DataLoader:
     dataset = TimeseriesDataset(data, input_length, output_length)
+
+    if not positional_encoding:
+        dataset = NoPositionalEncoding(dataset)
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
 
