@@ -1,12 +1,19 @@
-import matplotlib.pyplot as plt
 from datetime import datetime
 
-import torch
+import matplotlib.pyplot as plt
 import polars as pl
+import torch
 
-from examples.data import get_data_electricity, get_loader, get_data_electricity_hourly
-from examples.util import save_model, train_one_epoch, evaluate_model, plot_samples, Dataset, get_data_loaders, \
-    get_loss_function, LossFunction
+from examples.util import (
+    Dataset,
+    LossFunction,
+    evaluate_model,
+    get_data_loaders,
+    get_loss_function,
+    plot_samples,
+    save_model,
+    train_one_epoch,
+)
 from modular_transformer.classical import ClassicalTransformer
 
 
@@ -87,20 +94,8 @@ def train_transformer(
         plt.legend()
         plt.show()
 
-        plot_samples(
-            model,
-            test_loader,
-            use_labels=True,
-            num_samples=2,
-            title="test"
-        )
-        plot_samples(
-            model,
-            train_loader,
-            use_labels=True,
-            num_samples=1,
-            title="train"
-        )
+        plot_samples(model, test_loader, use_labels=True, num_samples=2, title="test")
+        plot_samples(model, train_loader, use_labels=True, num_samples=1, title="train")
 
     num_params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters: {num_params}")

@@ -1,4 +1,4 @@
-from typing import Literal, Callable
+from typing import Callable, Literal
 
 import torch
 import torchmetrics
@@ -6,17 +6,17 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from examples.data import get_loader, get_data_electricity, get_data_electricity_hourly
+from examples.data import get_data_electricity, get_data_electricity_hourly, get_loader
 
 
-def mean_variance(l: list[float]) -> tuple[float, float]:
-    mean = sum(l) / len(l)
-    variance = sum((x - mean) ** 2 for x in l) / len(l)
+def mean_variance(values: list[float]) -> tuple[float, float]:
+    mean = sum(values) / len(values)
+    variance = sum((x - mean) ** 2 for x in values) / len(values)
     return mean, variance
 
 
 def moving_average(x, w):
-    return [sum(x[i:i + w]) / w for i in range(len(x) - w + 1)]
+    return [sum(x[i : i + w]) / w for i in range(len(x) - w + 1)]
 
 
 def save_model(model, name: str, input_length: str, output_length: str):
@@ -41,7 +41,7 @@ def train_one_epoch(
         assert not inputs.isnan().any()
         if use_labels:
             labels_masked = labels.clone()
-            labels_masked[:, :, 0] = 0.
+            labels_masked[:, :, 0] = 0.0
             outputs = model(inputs, labels_masked)
         else:
             outputs = model(inputs).unsqueeze(-1)
@@ -70,7 +70,7 @@ def evaluate_model(
         assert not inputs.isnan().any()
         if use_labels:
             labels_masked = labels.clone()
-            labels_masked[:, :, 0] = 0.
+            labels_masked[:, :, 0] = 0.0
             outputs = model(inputs, labels_masked)
         else:
             outputs = model(inputs).unsqueeze(-1)
@@ -90,7 +90,7 @@ def plot_samples(
     test_loader: DataLoader,
     use_labels: bool,
     num_samples: int = 5,
-    title: str = ""
+    title: str = "",
 ):
     model.eval()
     for i, (inputs, labels) in enumerate(test_loader):
@@ -102,7 +102,7 @@ def plot_samples(
 
         if use_labels:
             labels_masked = labels.clone()
-            labels_masked[:, :, 0] = 0.
+            labels_masked[:, :, 0] = 0.0
             outputs = model(inputs, labels_masked)
         else:
             outputs = model(inputs).unsqueeze(-1)
@@ -114,8 +114,14 @@ def plot_samples(
 
         plt.plot(inputs.numpy(), label="inputs")
         # plot outputs and ground truth behind input sequence
-        plt.plot(range(_input_length, _input_length + _output_length), outputs.numpy(), label="outputs")
-        plt.plot(range(_input_length, _input_length + _output_length), labels.numpy(), label="ground truth")
+        plt.plot(
+            range(_input_length, _input_length + _output_length), outputs.numpy(), label="outputs"
+        )
+        plt.plot(
+            range(_input_length, _input_length + _output_length),
+            labels.numpy(),
+            label="ground truth",
+        )
         plt.title(f"{title}{' ' if title else ''}mse: {mse_loss:.5f}")
         plt.legend()
         plt.xticks(range(0, _input_length + _output_length, 2))
@@ -146,7 +152,7 @@ def get_data_loaders(
         output_length=output_length,
         batch_size=batch_size,
         shuffle=True,
-        positional_encoding=positional_encoding
+        positional_encoding=positional_encoding,
     )
     test_loader = get_loader(
         data_test,
@@ -154,12 +160,14 @@ def get_data_loaders(
         output_length=output_length,
         batch_size=batch_size,
         shuffle=True,
-        positional_encoding=positional_encoding
+        positional_encoding=positional_encoding,
     )
     return train_loader, test_loader
 
 
-def get_loss_function(loss_function: LossFunction) -> Callable[[torch.Tensor, torch.Tensor], torch.Tensor]:
+def get_loss_function(
+    loss_function: LossFunction,
+) -> Callable[[torch.Tensor, torch.Tensor], torch.Tensor]:
     match loss_function:
         case "mse":
             return torch.nn.functional.mse_loss

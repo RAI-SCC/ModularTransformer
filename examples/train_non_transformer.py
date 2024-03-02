@@ -1,12 +1,20 @@
 from datetime import datetime
 
+import matplotlib.pyplot as plt
+import polars as pl
 import torch
 
 from examples.model import QuadraticModel
-from examples.util import save_model, train_one_epoch, evaluate_model, plot_samples, get_data_loaders, Dataset, \
-    get_loss_function, LossFunction
-import matplotlib.pyplot as plt
-import polars as pl
+from examples.util import (
+    Dataset,
+    LossFunction,
+    evaluate_model,
+    get_data_loaders,
+    get_loss_function,
+    plot_samples,
+    save_model,
+    train_one_epoch,
+)
 
 
 def train_quadratic_model(
@@ -73,20 +81,8 @@ def train_quadratic_model(
         plt.title("losses")
         plt.show()
 
-        plot_samples(
-            model,
-            test_loader,
-            use_labels=False,
-            num_samples=2,
-            title="test"
-        )
-        plot_samples(
-            model,
-            train_loader,
-            use_labels=False,
-            num_samples=1,
-            title="train"
-        )
+        plot_samples(model, test_loader, use_labels=False, num_samples=2, title="test")
+        plot_samples(model, train_loader, use_labels=False, num_samples=1, title="train")
     num_params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters: {num_params}")
     print(f"Duration: {duration}")
