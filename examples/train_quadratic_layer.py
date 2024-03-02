@@ -12,7 +12,7 @@ from examples.util import (
     get_loss_function,
     plot_samples,
     save_model,
-    train_one_epoch,
+    train_one_epoch, add_to_results, get_device,
 )
 from modular_transformer.taylor import TaylorTransformer
 
@@ -26,6 +26,7 @@ def train_quadratic_transformer(
     batch_size: int = 20,
     plot: bool = True,
 ):
+    device = get_device()
     model = TaylorTransformer(
         input_features=1,
         output_features=1,
@@ -37,17 +38,15 @@ def train_quadratic_transformer(
         num_encoder_layers=1,
         num_decoder_layers=1,
         final_activation=None,
+        device=device,
     )
-
-    print(model)
-    print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
-
     train_loader, test_loader = get_data_loaders(
         dataset,
         input_length,
         output_length,
         batch_size=20,
         positional_encoding=False,
+        device=device,
     )
 
     learning_rate = 0.0005
@@ -59,6 +58,8 @@ def train_quadratic_transformer(
     mses_test_variance = []
     maes_test_mean = []
     maes_test_variance = []
+    mapes_test_mean = []
+    mapes_test_variance = []
 
     start_time = datetime.now()
     for epoch in range(epochs):
@@ -73,7 +74,7 @@ def train_quadratic_transformer(
         )
         mses_train.append(avg_loss)
 
-        mean_mse, variance_mse, mean_mae, variance_mae = evaluate_model(
+        mean_mse, variance_mse, mean_mae, variance_mae, mean_mape, variance_mape = evaluate_model(
             model,
             test_loader,
             use_labels=True,
@@ -82,6 +83,8 @@ def train_quadratic_transformer(
         mses_test_variance.append(variance_mse)
         maes_test_mean.append(mean_mae)
         maes_test_variance.append(variance_mae)
+        mapes_test_mean.append(mean_mape)
+        mapes_test_variance.append(variance_mape)
 
         print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
 
@@ -106,24 +109,23 @@ def train_quadratic_transformer(
     duration = datetime.now() - start_time
     print(f"Duration: {duration}")
 
-    metadata = pl.DataFrame(
-        {
-            "model_type": ["taylor-transformer"],
-            "input_length": [input_length],
-            "output_length": [output_length],
-            "epochs": [epochs],
-            "batch_size": [batch_size],
-            "learning_rate": [learning_rate],
-            "mses_train": [mses_train],
-            "mses_test_mean": [mses_test_mean],
-            "mses_test_variance": [mses_test_variance],
-            "maes_test_mean": [maes_test_mean],
-            "maes_test_variance": [maes_test_variance],
-            "num_params": [num_params],
-            "duration": [duration],
-        }
+    add_to_results(
+        "taylor-transformer",
+        input_length,
+        output_length,
+        epochs,
+        batch_size,
+        learning_rate,
+        num_params,
+        duration.total_seconds(),
+        mses_train,
+        mses_test_mean,
+        mses_test_variance,
+        maes_test_mean,
+        maes_test_variance,
+        mapes_test_mean,
+        mapes_test_variance,
     )
-    metadata.write_parquet("examples/model-weights/taylor-transformer-metadata.parquet")
 
 
 if __name__ == "__main__":

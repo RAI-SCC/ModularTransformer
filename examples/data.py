@@ -5,10 +5,11 @@ from torch.utils.data import DataLoader
 
 
 class TimeseriesDataset(torch.utils.data.Dataset):
-    def __init__(self, x: torch.Tensor, input_seq_len: int, output_seq_len: int):
+    def __init__(self, x: torch.Tensor, input_seq_len: int, output_seq_len: int, device: torch.device | None = None):
         self.x = x
         self.input_seq_len = input_seq_len
         self.output_seq_len = output_seq_len
+        self.device = device
 
     def __len__(self):
         return len(self.x) - (self.input_seq_len + self.output_seq_len)
@@ -32,12 +33,12 @@ class TimeseriesDataset(torch.utils.data.Dataset):
         assert sequence.shape[0] == self.input_seq_len
         assert next_elements.shape[0] == self.output_seq_len
         annotations = [self._index_to_annotations(i) for i in range(index, index + self.input_seq_len)]
-        annotations = torch.Tensor(annotations)
+        annotations = torch.Tensor(annotations).to(self.device)
         annotations_next_elements = [
             self._index_to_annotations(i)
             for i in range(index + self.input_seq_len, index + self.input_seq_len + self.output_seq_len)
         ]
-        annotations_next_elements = torch.Tensor(annotations_next_elements)
+        annotations_next_elements = torch.Tensor(annotations_next_elements).to(self.device)
         sequence = sequence.unsqueeze(-1)
         next_elements = next_elements.unsqueeze(-1)
 
@@ -68,7 +69,7 @@ class TimeseriesDatasetMultivariate(torch.utils.data.Dataset):
         return (sequence, next_elements)
 
 
-def get_data_electricity() -> tuple[torch.Tensor, torch.Tensor]:
+def get_data_electricity(device: torch.device | None = None) -> tuple[torch.Tensor, torch.Tensor]:
     data = pl.read_csv(
         "./data/western-europe-power-consumption/de.csv",
         dtypes={"start": pl.Datetime, "end": pl.Datetime, "load": pl.Float32},
@@ -79,13 +80,13 @@ def get_data_electricity() -> tuple[torch.Tensor, torch.Tensor]:
     x = x.fill_null(strategy="backward")
     normalized_x = (x - x.mean()) / x.std()
     x_np = normalized_x.to_numpy()
-    x_tensor = torch.Tensor(x_np)
+    x_tensor = torch.from_numpy(x_np).to(device)
     x_len = len(x)
-    return x_tensor[: int(x_len * 0.6)], x_tensor[int(x_len * 0.6) :]
+    return x_tensor[: int(x_len * 0.6)], x_tensor[int(x_len * 0.6):]
 
 
-def get_data_electricity_hourly() -> tuple[torch.Tensor, torch.Tensor]:
-    x_train, x_test = get_data_electricity()
+def get_data_electricity_hourly(device: torch.device | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    x_train, x_test = get_data_electricity(device=device)
     # skip every 4 values
     x_train = x_train[::4]
     x_test = x_test[::4]
@@ -110,9 +111,10 @@ def get_loader(
     output_length: int,
     batch_size: int,
     shuffle: bool = True,
-    positional_encoding: bool = True
+    positional_encoding: bool = True,
+    device: torch.device | None = None,
 ) -> DataLoader:
-    dataset = TimeseriesDataset(data, input_length, output_length)
+    dataset = TimeseriesDataset(data, input_length, output_length, device=device)
 
     if not positional_encoding:
         dataset = NoPositionalEncoding(dataset)

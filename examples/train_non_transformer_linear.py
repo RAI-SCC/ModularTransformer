@@ -1,10 +1,9 @@
 from datetime import datetime
 
 import matplotlib.pyplot as plt
-import polars as pl
 import torch
 
-from examples.model import QuadraticModel
+from examples.model import get_linear_model, get_hidden_size
 from examples.util import (
     Dataset,
     LossFunction,
@@ -17,7 +16,7 @@ from examples.util import (
 )
 
 
-def train_quadratic_model(
+def train_linear_model(
     input_length: int,
     output_length: int,
     dataset: Dataset,
@@ -26,8 +25,13 @@ def train_quadratic_model(
     batch_size: int = 20,
     plot: bool = True,
 ):
+    quadratic_size = (input_length + (input_length ** 2 + input_length) // 2 + 1) * output_length
+    hidden_size = get_hidden_size(
+        lambda h: (input_length + 1) * h + (h + 1) * output_length,
+        quadratic_size
+    )
     device = get_device()
-    model = QuadraticModel(dim_in=input_length, hidden_layers=[], dim_out=output_length, device=device)
+    model = get_linear_model(input_size=input_length, output_size=output_length, hidden_size=hidden_size, device=device)
     train_loader, test_loader = get_data_loaders(
         dataset,
         input_length,
@@ -37,7 +41,7 @@ def train_quadratic_model(
         device=device,
     )
 
-    learning_rate = 0.0005
+    learning_rate = 0.005
     loss_fn = get_loss_function(loss_function)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -79,7 +83,7 @@ def train_quadratic_model(
         print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
     duration = datetime.now() - start_time
 
-    save_model(model, "quadratic", str(input_length), str(output_length))
+    save_model(model, "linear", str(input_length), str(output_length))
 
     if plot:
         plt.plot(mses_train, label="train mse")
@@ -118,7 +122,7 @@ if __name__ == "__main__":
     _epochs = 5
     _dataset: Dataset = "electricity-hourly"
     _loss_function: LossFunction = "mse"
-    train_quadratic_model(
+    train_linear_model(
         _input_length,
         _output_length,
         _dataset,

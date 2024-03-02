@@ -1,3 +1,4 @@
+import pathlib
 from typing import Callable, Literal
 
 import torch
@@ -5,6 +6,7 @@ import torchmetrics
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import polars as pl
 
 from examples.data import get_data_electricity, get_data_electricity_hourly, get_loader
 
@@ -44,7 +46,7 @@ def train_one_epoch(
             labels_masked[:, :, 0] = 0.0
             outputs = model(inputs, labels_masked)
         else:
-            outputs = model(inputs).unsqueeze(-1)
+            outputs = model(inputs.squeeze(-1)).unsqueeze(-1)
         assert not outputs.isnan().any()
 
         loss = loss_fn(outputs.squeeze(-1), labels[:, :, 0])
@@ -65,6 +67,7 @@ def evaluate_model(
 ):
     losses_mse = []
     losses_mae = []
+    losses_mape = []
     model.eval()
     for inputs, labels in test_loader:
         assert not inputs.isnan().any()
@@ -73,15 +76,18 @@ def evaluate_model(
             labels_masked[:, :, 0] = 0.0
             outputs = model(inputs, labels_masked)
         else:
-            outputs = model(inputs).unsqueeze(-1)
+            outputs = model(inputs.squeeze(-1)).unsqueeze(-1)
         loss_mse = torch.nn.functional.mse_loss(outputs.squeeze(-1), labels[:, :, 0])
         loss_mae = torch.nn.functional.l1_loss(outputs.squeeze(-1), labels[:, :, 0])
+        loss_mape = torchmetrics.functional.mean_absolute_percentage_error(outputs.squeeze(-1), labels[:, :, 0])
         losses_mse.append(loss_mse.item())
         losses_mae.append(loss_mae.item())
+        losses_mape.append(loss_mape.item())
 
     mean_mse, variance_mse = mean_variance(losses_mse)
     mean_mae, variance_mae = mean_variance(losses_mae)
-    return mean_mse, variance_mse, mean_mae, variance_mae
+    mean_mape, variance_mape = mean_variance(losses_mape)
+    return mean_mse, variance_mse, mean_mae, variance_mae, mean_mape, variance_mape
 
 
 @torch.no_grad()
@@ -105,7 +111,7 @@ def plot_samples(
             labels_masked[:, :, 0] = 0.0
             outputs = model(inputs, labels_masked)
         else:
-            outputs = model(inputs).unsqueeze(-1)
+            outputs = model(inputs.squeeze(-1)).unsqueeze(-1)
 
         inputs = inputs[0, :, 0]
         outputs = outputs[0, :, 0]
@@ -138,12 +144,13 @@ def get_data_loaders(
     output_length: int,
     batch_size: int,
     positional_encoding: bool,
+    device: torch.device | None = None,
 ):
     match dataset:
         case "electricity":
-            data_train, data_test = get_data_electricity()
+            data_train, data_test = get_data_electricity(device=device)
         case "electricity-hourly":
-            data_train, data_test = get_data_electricity_hourly()
+            data_train, data_test = get_data_electricity_hourly(device=device)
         case _:
             raise ValueError(f"Unknown dataset {dataset}")
     train_loader = get_loader(
@@ -153,6 +160,7 @@ def get_data_loaders(
         batch_size=batch_size,
         shuffle=True,
         positional_encoding=positional_encoding,
+        device=device
     )
     test_loader = get_loader(
         data_test,
@@ -161,6 +169,7 @@ def get_data_loaders(
         batch_size=batch_size,
         shuffle=True,
         positional_encoding=positional_encoding,
+        device=device
     )
     return train_loader, test_loader
 
@@ -177,3 +186,54 @@ def get_loss_function(
             return torchmetrics.functional.mean_absolute_percentage_error
         case _:
             raise ValueError(f"Unknown loss function {loss_function}")
+
+
+def add_to_results(
+    model_type: str,
+    input_length: int,
+    output_length: int,
+    epochs: int,
+    batch_size: int,
+    learning_rate: float,
+    num_params: int,
+    duration: float,
+    loss_train: list[float],
+    mses_test_mean: list[float],
+    mses_test_variance: list[float],
+    maes_test_mean: list[float],
+    maes_test_variance: list[float],
+    mapes_test_mean: list[float],
+    mapes_test_variance: list[float],
+):
+    results = {
+        "model_type": model_type,
+        "input_length": input_length,
+        "output_length": output_length,
+        "epochs": epochs,
+        "batch_size": batch_size,
+        "learning_rate": learning_rate,
+        "num_params": num_params,
+        "duration": duration,
+        "loss_train": loss_train,
+        "mses_test_mean": mses_test_mean,
+        "mses_test_variance": mses_test_variance,
+        "maes_test_mean": maes_test_mean,
+        "maes_test_variance": maes_test_variance,
+        "mapes_test_mean": mapes_test_mean,
+        "mapes_test_variance": mapes_test_variance,
+    }
+    path = "examples/model-weights/results.parquet"
+    if not pathlib.Path(path).exists():
+        results_df = pl.DataFrame([results])
+    # append row to existing parquet file
+    else:
+        results_df = pl.read_parquet(path)
+        results_df = results_df.vstack(pl.DataFrame([results]))
+    results_df.write_parquet(path)
+    return results
+
+
+def get_device() -> torch.device:
+    return torch.device(
+        "cuda" if torch.cuda.is_available() else "cpu"
+    )
