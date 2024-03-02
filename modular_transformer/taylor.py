@@ -25,7 +25,7 @@ class TaylorTransformer(Transformer):
         sequence_length: int | None = None,
         sequence_length_decoder: int | None = None,
         inter_activation: str | Callable[[Tensor], Tensor] | None = ReLU(),
-        final_activation: str | Callable[[Tensor], Tensor] = Softmax(),
+        final_activation: str | Callable[[Tensor], Tensor] | None = Softmax(),
         encoder_mask: AttentionMatrixMask | str | None = None,
         decoder_mask: AttentionMatrixMask | str | None = None,
         bias: bool = True,
