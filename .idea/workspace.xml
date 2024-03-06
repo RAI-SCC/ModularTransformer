@@ -5,8 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e2599807-ae33-4fe2-8ac9-48aefb72c5b8" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/modular_transformer/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/modular_transformer/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modular_transformer/layers/attention_modules/output_modules/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/modular_transformer/layers/attention_modules/output_modules/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/train_MC.py" beforeDir="false" afterPath="$PROJECT_DIR$/examples/train_MC.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,21 +34,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.data (1).executor": "Run",
-    "Python.data.executor": "Run",
-    "Python.train (1).executor": "Run",
-    "Python.train (2).executor": "Run",
-    "Python.train.executor": "Run",
-    "Python.train_MC.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/asena/Desktop/ModularTransformer",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.data (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.train (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.train (2).executor&quot;: &quot;Run&quot;,
+    &quot;Python.train.executor&quot;: &quot;Run&quot;,
+    &quot;Python.train_MC.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;monte-carlo&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/asena/Desktop/ModularTransformer&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/layers/attention_modules/mc_dropout" />

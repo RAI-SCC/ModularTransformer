@@ -70,7 +70,7 @@ def plot_samples(model: ClassicalMCDTransformer, test_loader: DataLoader, sample
         for i in range(sample_num):
             vout_list.append(model(vinputs, vlabels_masked))
         voutputs = torch.mean(torch.stack(vout_list), dim=0)
-        voutput_std = torch.std(torch.stack(vout_list), dim=0)
+        voutput_std = torch.squeeze(torch.std(torch.stack(vout_list), dim=0))
         #voutputs = model(vinputs, vlabels_masked)
         vinputs = vinputs[:, :, 0]
         voutputs = voutputs[:, :, 0]
@@ -83,16 +83,17 @@ def plot_samples(model: ClassicalMCDTransformer, test_loader: DataLoader, sample
         # print(vlabels)
 
         for i in range(vlabels.shape[0]):
-            if n > 10:
+            if n > 1:
                 return
-            plt.plot(vinputs[i, :].numpy(), label="inputs")
+            plt.plot(vinputs[i, :].numpy(), color='blue', label="inputs")
             # plot outputs and ground truth behind input sequence
-            plt.plot(range(input_length, input_length + output_length), voutputs[i, :].numpy(), label="outputs")
-            plt.plot(range(input_length, input_length + output_length), vlabels[i, :].numpy(), label="ground truth")
+            plt.plot(range(input_length, input_length + output_length), voutputs[i, :].numpy(), color='orange', label="outputs")
+            plt.plot(range(input_length, input_length + output_length), vlabels[i, :].numpy(), color='green', label="ground truth")
             plt.legend()
             plt.xticks(range(0, input_length + output_length, 2))
-            #plt.fill_between(range(input_length, input_length + output_length), (torch.add(voutputs[i, :], voutput_std[i, :], alpha=-1)).numpy(), (torch.add(voutputs[i, :], voutput_std[i, :], alpha=1)).numpy(), color='b', alpha=.1)
-
+            plt.fill_between(range(input_length, input_length + output_length), (torch.add(voutputs[i, :], voutput_std[i, :], alpha=1)).numpy(), (torch.add(voutputs[i, :], voutput_std[i, :], alpha=-1)).numpy(), color='orange', alpha=.1)
+            #plt.plot(range(input_length, input_length + output_length), (torch.add(voutputs[i, :], voutput_std[i, :], alpha=1)).numpy(), color='orange', alpha=.3, label="upper conf bound")
+            #plt.plot(range(input_length, input_length + output_length), (torch.add(voutputs[i, :], voutput_std[i, :], alpha=-1)).numpy(), color='orange', alpha=.3, label="lower conf bound")
             plt.show()
             # time.sleep(5)
             n += 1
