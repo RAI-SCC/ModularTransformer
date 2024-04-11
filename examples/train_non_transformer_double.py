@@ -1,9 +1,10 @@
 from datetime import datetime
 
 import matplotlib.pyplot as plt
+import polars as pl
 import torch
 
-from examples.model import get_linear_model, get_hidden_size, size_quadratic
+from examples.model import QuadraticModel
 from examples.util import (
     Dataset,
     LossFunction,
@@ -16,7 +17,7 @@ from examples.util import (
 )
 
 
-def train_linear_model(
+def train_quadratic_model_double(
     input_length: int,
     output_length: int,
     dataset: Dataset,
@@ -25,14 +26,8 @@ def train_linear_model(
     batch_size: int = 20,
     plot: bool = True,
 ):
-    quadratic_size = size_quadratic(input_length, output_length, [10])
-    hidden_size = get_hidden_size(
-        lambda h: (input_length + 1) * h + (h + 1) * output_length,
-        quadratic_size
-    )
-    # hidden_size = 20
     device = get_device()
-    model = get_linear_model(input_size=input_length, output_size=output_length, hidden_size=hidden_size, device=device)
+    model = QuadraticModel(dim_in=input_length, hidden_layers=[10, 10], dim_out=output_length, device=device)
     train_loader, test_loader = get_data_loaders(
         dataset,
         input_length,
@@ -84,13 +79,12 @@ def train_linear_model(
         print(f"Train {loss_function}: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
     duration = datetime.now() - start_time
 
-    save_model(model, "linear", dataset, input_length, output_length, loss_function)
+    save_model(model, "quadratic-double", dataset, input_length, output_length, loss_function)
 
     if plot:
         plt.plot(mses_train, label="train mse")
         plt.plot(mses_test_mean, label="test mse")
         plt.title("losses")
-        plt.legend()
         plt.show()
 
         plot_samples(model, test_loader, use_labels=False, num_samples=2, title="test")
@@ -100,7 +94,7 @@ def train_linear_model(
     print(f"Duration: {duration}")
 
     add_to_results(
-        "linear",
+        "quadratic-double",
         dataset,
         input_length,
         output_length,
@@ -121,12 +115,12 @@ def train_linear_model(
 
 
 if __name__ == "__main__":
-    _input_length = 12
-    _output_length = 24
-    _epochs = 100
+    _input_length = 20
+    _output_length = 10
+    _epochs = 30
     _dataset: Dataset = "electricity-hourly"
     _loss_function: LossFunction = "mse"
-    train_linear_model(
+    train_quadratic_model_double(
         _input_length,
         _output_length,
         _dataset,

@@ -1,3 +1,4 @@
+import os
 import pathlib
 from typing import Callable, Literal
 
@@ -5,11 +6,15 @@ import torch
 import torchmetrics
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 import polars as pl
 
-from examples.data import get_data_electricity, get_data_electricity_hourly, get_loader
+from examples.data import get_data_electricity, get_data_electricity_hourly, get_loader, get_data_ett
 
+PATH_RESULTS = "examples/model-weights-final2"
+
+
+Dataset = Literal["electricity", "electricity-hourly", "etth1", "etth2", "ettm1", "ettm2"]
+LossFunction = Literal["mse", "mae", "mape"]
 
 def mean_variance(values: list[float]) -> tuple[float, float]:
     mean = sum(values) / len(values)
@@ -21,10 +26,21 @@ def moving_average(x, w):
     return [sum(x[i : i + w]) / w for i in range(len(x) - w + 1)]
 
 
-def save_model(model, name: str, input_length: str, output_length: str):
-    path = f"examples/model-weights/{name}-input{input_length}-output{output_length}.pt"
+def model_path(name: str, dataset: Dataset, input_length: int, output_length: int, loss_function: LossFunction):
+    return f"{PATH_RESULTS}/{name}-{dataset}-{loss_function}-input{input_length}-output{output_length}.pt"
+
+
+def save_model(model, name: str, dataset: Dataset, input_length: int, output_length: int, loss_function: LossFunction):
+    path = model_path(name, dataset, input_length, output_length, loss_function)
     print(f"Saving model to {path}")
     torch.save(model.state_dict(), path)
+
+
+def load_model_weights(model, name: str, dataset: Dataset, input_length: int, output_length: int, loss_function: LossFunction):
+    path = model_path(name, dataset, input_length, output_length, loss_function)
+    model.load_state_dict(
+        torch.load(path)
+    )
 
 
 def train_one_epoch(
@@ -38,7 +54,7 @@ def train_one_epoch(
     len_data = len(training_loader)
     model.train()
 
-    for inputs, labels in tqdm(training_loader):
+    for inputs, labels in training_loader:
         optimizer.zero_grad()
         assert not inputs.isnan().any()
         if use_labels:
@@ -134,10 +150,6 @@ def plot_samples(
         plt.show()
 
 
-Dataset = Literal["electricity", "electricity-hourly"]
-LossFunction = Literal["mse", "mae", "mape"]
-
-
 def get_data_loaders(
     dataset: Dataset,
     input_length: int,
@@ -151,6 +163,14 @@ def get_data_loaders(
             data_train, data_test = get_data_electricity(device=device)
         case "electricity-hourly":
             data_train, data_test = get_data_electricity_hourly(device=device)
+        case "etth1":
+            data_train, data_test = get_data_ett("h1", device=device)
+        case "etth2":
+            data_train, data_test = get_data_ett("h2", device=device)
+        case "ettm1":
+            data_train, data_test = get_data_ett("m1", device=device)
+        case "ettm2":
+            data_train, data_test = get_data_ett("m2", device=device)
         case _:
             raise ValueError(f"Unknown dataset {dataset}")
     train_loader = get_loader(
@@ -190,10 +210,12 @@ def get_loss_function(
 
 def add_to_results(
     model_type: str,
+    dataset: Dataset,
     input_length: int,
     output_length: int,
     epochs: int,
     batch_size: int,
+    loss_function: LossFunction,
     learning_rate: float,
     num_params: int,
     duration: float,
@@ -207,10 +229,12 @@ def add_to_results(
 ):
     results = {
         "model_type": model_type,
+        "dataset": dataset,
         "input_length": input_length,
         "output_length": output_length,
         "epochs": epochs,
         "batch_size": batch_size,
+        "loss_function": loss_function,
         "learning_rate": learning_rate,
         "num_params": num_params,
         "duration": duration,
@@ -222,13 +246,17 @@ def add_to_results(
         "mapes_test_mean": mapes_test_mean,
         "mapes_test_variance": mapes_test_variance,
     }
-    path = "examples/model-weights/results.parquet"
+    path = f"{PATH_RESULTS}/results.parquet"
+    result_df = pl.DataFrame([results])
+    with pl.Config(tbl_cols=-1, tbl_width_chars=220):
+        print(result_df)
+
     if not pathlib.Path(path).exists():
-        results_df = pl.DataFrame([results])
+        results_df = result_df
     # append row to existing parquet file
     else:
         results_df = pl.read_parquet(path)
-        results_df = results_df.vstack(pl.DataFrame([results]))
+        results_df = results_df.vstack(result_df)
     results_df.write_parquet(path)
     return results
 

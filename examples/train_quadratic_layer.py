@@ -49,11 +49,12 @@ def train_quadratic_transformer(
         device=device,
     )
 
-    learning_rate = 0.0005
     loss_fn = get_loss_function(loss_function)
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    learning_rate = 0.001
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.3)
+    print(optimizer)
 
-    mses_train = []
+    losses_train = []
     mses_test_mean = []
     mses_test_variance = []
     maes_test_mean = []
@@ -72,7 +73,7 @@ def train_quadratic_transformer(
             train_loader,
             use_labels=True,
         )
-        mses_train.append(avg_loss)
+        losses_train.append(avg_loss)
 
         mean_mse, variance_mse, mean_mae, variance_mae, mean_mape, variance_mape = evaluate_model(
             model,
@@ -86,13 +87,13 @@ def train_quadratic_transformer(
         mapes_test_mean.append(mean_mape)
         mapes_test_variance.append(variance_mape)
 
-        print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
+        print(f"Train {loss_function}: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
 
-    save_model(model, "taylor-transformer", str(input_length), str(output_length))
+    save_model(model, "taylor-transformer", dataset, input_length, output_length, loss_function)
 
     if plot:
-        plt.plot(mses_train, label="q train mse")
-        plt.plot(mses_test_mean, label="q test mse")
+        plt.plot(losses_train, label=f"train {loss_function}")
+        plt.plot(mses_test_mean, label=f"test {loss_function}")
         plt.title("losses")
         plt.legend()
         plt.show()
@@ -111,14 +112,16 @@ def train_quadratic_transformer(
 
     add_to_results(
         "taylor-transformer",
+        dataset,
         input_length,
         output_length,
         epochs,
         batch_size,
+        loss_function,
         learning_rate,
         num_params,
         duration.total_seconds(),
-        mses_train,
+        losses_train,
         mses_test_mean,
         mses_test_variance,
         maes_test_mean,
@@ -129,9 +132,9 @@ def train_quadratic_transformer(
 
 
 if __name__ == "__main__":
-    _input_length = 20
-    _output_length = 10
-    _epochs = 5
+    _input_length = 12
+    _output_length = 24
+    _epochs = 100
     _dataset: Dataset = "electricity-hourly"
     _loss_function: LossFunction = "mse"
     train_quadratic_transformer(

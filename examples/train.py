@@ -47,9 +47,10 @@ def train_transformer(
         device=device,
     )
 
-    learning_rate = 0.005
     loss_fn = get_loss_function(loss_function)
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    learning_rate = 0.001
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.3)
+    print(optimizer)
 
     mses_train = []
     mses_test_mean = []
@@ -84,10 +85,10 @@ def train_transformer(
         mapes_test_mean.append(mean_mape)
         mapes_test_variance.append(variance_mape)
 
-        print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
+        print(f"Train {loss_function}: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
     duration = datetime.now() - start_time
 
-    save_model(model, "transformer", str(input_length), str(output_length))
+    save_model(model, "transformer", dataset, input_length, output_length, loss_function)
 
     if plot:
         plt.plot(mses_train, label="train mse")
@@ -110,10 +111,12 @@ def train_transformer(
 
     add_to_results(
         "transformer",
+        dataset,
         input_length,
         output_length,
         epochs,
         batch_size,
+        loss_function,
         learning_rate,
         num_params,
         duration.total_seconds(),
@@ -128,11 +131,12 @@ def train_transformer(
 
 
 if __name__ == "__main__":
-    _input_length = 20
-    _output_length = 10
+    _input_length = 12
+    _output_length = 24
     _epochs = 5
-    _dataset: Dataset = "electricity-hourly"
-    _loss_function: LossFunction = "mse"
+    _dataset: Dataset = "etth2"
+    # _dataset: Dataset = "electricity-hourly"
+    _loss_function: LossFunction = "mae"
     train_transformer(
         _input_length,
         _output_length,

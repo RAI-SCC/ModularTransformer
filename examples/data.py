@@ -2,6 +2,7 @@ import polars as pl
 import torch
 import math
 from torch.utils.data import DataLoader
+from typing import Literal
 
 
 class TimeseriesDataset(torch.utils.data.Dataset):
@@ -82,7 +83,7 @@ def get_data_electricity(device: torch.device | None = None) -> tuple[torch.Tens
     x_np = normalized_x.to_numpy()
     x_tensor = torch.from_numpy(x_np).to(device)
     x_len = len(x)
-    return x_tensor[: int(x_len * 0.6)], x_tensor[int(x_len * 0.6):]
+    return x_tensor[: int(x_len * 0.7)], x_tensor[int(x_len * 0.7):]
 
 
 def get_data_electricity_hourly(device: torch.device | None = None) -> tuple[torch.Tensor, torch.Tensor]:
@@ -91,6 +92,37 @@ def get_data_electricity_hourly(device: torch.device | None = None) -> tuple[tor
     x_train = x_train[::4]
     x_test = x_test[::4]
     return x_train, x_test
+
+
+def get_ett_time_series(i: Literal['h1', 'h2', 'm1', 'm2'] = 'h1', device: torch.device | None = None) -> torch.Tensor:
+    schema = {
+        'date': pl.Datetime,
+        'HUFL': pl.Float64,
+        'HULL': pl.Float64,
+        'MUFL': pl.Float64,
+        'MULL': pl.Float64,
+        'LUFL': pl.Float64,
+        'LULL': pl.Float64,
+        'OT': pl.Float64,
+    }
+    data = pl.read_csv(
+        f"data/ett-small/ETT{i}.csv",
+        schema=schema,
+    )
+    x = data[["HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL", "OT"]]
+    assert all(not x[col].is_null().any() for col in x.columns)
+    x_np = x.to_numpy()
+    x_normalized = (x_np - x_np.mean(axis=0)) / x_np.std(axis=0)
+    x_tensor = torch.Tensor(x_normalized)
+    return x_tensor
+
+def get_data_ett(i: Literal['h1', 'h2', 'm1', 'm2'] = 'h1', device: torch.device | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    x = get_ett_time_series(i)
+    x_len = len(x)
+    # only take a look at target value
+    return x[: int(x_len * 0.8), -1], x[int(x_len * 0.8):, -1]
+
+
 
 
 class NoPositionalEncoding(torch.utils.data.Dataset):

@@ -37,9 +37,9 @@ def train_quadratic_model(
         device=device,
     )
 
-    learning_rate = 0.0005
     loss_fn = get_loss_function(loss_function)
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    learning_rate = 0.001
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.3)
 
     mses_train = []
     mses_test_mean = []
@@ -76,15 +76,16 @@ def train_quadratic_model(
 
         # plot_samples(model, test_loader)
 
-        print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
+        print(f"Train {loss_function}: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
     duration = datetime.now() - start_time
 
-    save_model(model, "quadratic", str(input_length), str(output_length))
+    save_model(model, "quadratic", dataset, input_length, output_length, loss_function)
 
     if plot:
         plt.plot(mses_train, label="train mse")
         plt.plot(mses_test_mean, label="test mse")
         plt.title("losses")
+        plt.legend()
         plt.show()
 
         plot_samples(model, test_loader, use_labels=False, num_samples=2, title="test")
@@ -94,11 +95,13 @@ def train_quadratic_model(
     print(f"Duration: {duration}")
 
     add_to_results(
-        "quadratic-model",
+        "quadratic",
+        dataset,
         input_length,
         output_length,
         epochs,
         batch_size,
+        loss_function,
         learning_rate,
         num_params,
         duration.total_seconds(),
@@ -113,9 +116,9 @@ def train_quadratic_model(
 
 
 if __name__ == "__main__":
-    _input_length = 20
-    _output_length = 10
-    _epochs = 5
+    _input_length = 12
+    _output_length = 24
+    _epochs = 100
     _dataset: Dataset = "electricity-hourly"
     _loss_function: LossFunction = "mse"
     train_quadratic_model(
@@ -124,4 +127,5 @@ if __name__ == "__main__":
         _dataset,
         _loss_function,
         _epochs,
+        plot=False
     )
