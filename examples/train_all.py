@@ -16,8 +16,9 @@ def main():
     breakages = []
     epochs = 100
     lengths = [(12, 24), (12, 6), (24, 24)]
+    datasets = ["electricity-hourly", "etth2"]
     for (input_length, output_length), dataset, loss_function in product(
-        lengths, ["electricity-hourly"], ["mse", "mae"]
+        lengths, datasets, ["mse", "mae"]
     ):
         print(f"Training for input_length={input_length}, output_length={output_length}, dataset={dataset}, loss_function={loss_function}")
         # stop if `shutdown` file exists
