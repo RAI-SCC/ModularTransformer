@@ -433,7 +433,11 @@ Unless otherwise specified all classes are available as `Qmap`, `KVmap`, and `QK
 ```bash
 python -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
 pip install -e .
+
+# run example training
+just train-example
 ```
 
 You can run the ruff linter using `ruff --fix` and the ruff formatter using `ruff format`.

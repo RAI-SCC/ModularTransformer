@@ -41,9 +41,7 @@ class SelfAttentionModule(Module):
         super().__init__()
         self._nhead = nhead
         self.qkv_mappings = ModuleList([copy.deepcopy(qkv_mapping) for _ in range(nhead)])
-        self.attention_mechanisms = ModuleList(
-            [copy.deepcopy(attention_mechanism) for _ in range(nhead)]
-        )
+        self.attention_mechanisms = ModuleList([copy.deepcopy(attention_mechanism) for _ in range(nhead)])
         self.head_reduction = head_reduction
         self.output_module = output_module
 
