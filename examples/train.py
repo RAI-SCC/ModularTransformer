@@ -1,18 +1,19 @@
 from datetime import datetime
 
 import matplotlib.pyplot as plt
-import polars as pl
 import torch
 
 from examples.util import (
     Dataset,
     LossFunction,
+    add_to_results,
     evaluate_model,
     get_data_loaders,
+    get_device,
     get_loss_function,
     plot_samples,
     save_model,
-    train_one_epoch, add_to_results, get_device,
+    train_one_epoch,
 )
 from modular_transformer.classical import ClassicalTransformer
 

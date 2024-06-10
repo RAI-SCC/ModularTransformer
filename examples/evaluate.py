@@ -1,10 +1,14 @@
-import torch
-from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+import torch
 
-from examples.data import get_data_electricity_hourly, get_loader
-from examples.model import QuadraticModel, CubicModelLarge, size_quadratic, get_hidden_size, get_linear_model
-from examples.util import Dataset, load_model_weights, get_data_loaders, LossFunction
+from examples.model import (
+    CubicModelLarge,
+    QuadraticModel,
+    get_hidden_size,
+    get_linear_model,
+    size_quadratic,
+)
+from examples.util import Dataset, LossFunction, get_data_loaders, load_model_weights
 from modular_transformer import ClassicalTransformer
 from modular_transformer.taylor import TaylorTransformer
 
@@ -36,19 +40,24 @@ taylor_transformer = TaylorTransformer(
     num_decoder_layers=1,
     final_activation=None,
 )
-load_model_weights(taylor_transformer, "taylor-transformer", dataset, input_length, output_length, loss_function)
+load_model_weights(
+    taylor_transformer, "taylor-transformer", dataset, input_length, output_length, loss_function
+)
 
 quadratic_model = QuadraticModel(dim_in=input_length, hidden_layers=[10], dim_out=output_length)
-load_model_weights(quadratic_model, "quadratic", dataset, input_length, output_length, loss_function)
+load_model_weights(
+    quadratic_model, "quadratic", dataset, input_length, output_length, loss_function
+)
 cubic_model = CubicModelLarge(dim_in=input_length, hidden_layers=[], dim_out=output_length)
 load_model_weights(cubic_model, "cubic", dataset, input_length, output_length, loss_function)
 
 quadratic_size = size_quadratic(input_length, output_length, [10])
 hidden_size = get_hidden_size(
-    lambda h: (input_length + 1) * h + (h + 1) * output_length,
-    quadratic_size
+    lambda h: (input_length + 1) * h + (h + 1) * output_length, quadratic_size
 )
-linear_model = get_linear_model(input_size=input_length, output_size=output_length, hidden_size=hidden_size)
+linear_model = get_linear_model(
+    input_size=input_length, output_size=output_length, hidden_size=hidden_size
+)
 load_model_weights(linear_model, "linear", dataset, input_length, output_length, loss_function)
 
 # quadratic_model_solved = QuadraticModel(dim_in=input_length, hidden_layers=[], dim_out=output_length)
@@ -71,30 +80,30 @@ for i, (inputs, labels) in enumerate(test_loader):
     taylor_transformer.eval()
     transformer.eval()
     quadratic_model.eval()
-    if i > 5:
-        break
 
     assert inputs.shape == (bs, input_length, 3)
     assert labels.shape == (bs, output_length, 3)
     labels_masked = labels.clone()
-    labels_masked[:, :, 0] = 0.
+    labels_masked[:, :, 0] = 0.0
     inputs_no_pos_encoding = inputs[:, :, 0].unsqueeze(-1)
 
-    outputs_taylor_transformer = taylor_transformer(inputs_no_pos_encoding, torch.zeros((bs, output_length, 1)))
+    outputs_taylor_transformer = taylor_transformer(
+        inputs_no_pos_encoding, torch.zeros((bs, output_length, 1))
+    )
     outputs_transformer = transformer(inputs, labels_masked)
     outputs_quadratic_model = quadratic_model(inputs_no_pos_encoding)
     outputs_cubic_model = cubic_model(inputs_no_pos_encoding)
     outputs_linear_model = linear_model(inputs_no_pos_encoding.squeeze(-1))
     # outputs_quadratic_model_solved = quadratic_model_solved(inputs_no_pos_encoding)
 
-    inputs = inputs[0, :, 0]
+    inputs_view = inputs[0, :, 0]
     outputs_taylor_transformer = outputs_taylor_transformer[0, :, 0]
     outputs_transformer = outputs_transformer[0, :, 0]
     outputs_quadratic_model = outputs_quadratic_model[0, :]
     # outputs_quadratic_model_solved = outputs_quadratic_model_solved[0, :]
     outputs_cubic_model = outputs_cubic_model[0, :]
     outputs_linear_model = outputs_linear_model[0, :]
-    labels = labels[0, :, 0]
+    labels_view = labels[0, :, 0]
     mse_taylor_transformer = torch.nn.MSELoss()(outputs_taylor_transformer, labels)
     mse_transformer = torch.nn.MSELoss()(outputs_transformer, labels)
     mse_quadratic_model = torch.nn.MSELoss()(outputs_quadratic_model, labels)
@@ -113,32 +122,60 @@ for i, (inputs, labels) in enumerate(test_loader):
     # outputs_quadratic_model_solved = outputs_quadratic_model_solved.detach().numpy()
     outputs_cubic_model = outputs_cubic_model.detach().numpy()
     outputs_linear_model = outputs_linear_model.detach().numpy()
-    labels = labels.detach().numpy()
-    inputs = inputs.detach().numpy()
+    labels_view = labels_view.detach().numpy()
+    inputs_view = inputs_view.detach().numpy()
 
-    plt.plot(inputs, label="inputs")
-    plt.plot(range(input_length, input_length + output_length), labels, label="ground truth")
+    plt.plot(inputs_view, label="inputs")
+    plt.plot(range(input_length, input_length + output_length), labels_view, label="ground truth")
     # plot outputs and ground truth behind input sequence
-    plt.plot(range(input_length, input_length + output_length), outputs_taylor_transformer, label="taylor transformer")
-    plt.plot(range(input_length, input_length + output_length), outputs_transformer, label="transformer")
+    plt.plot(
+        range(input_length, input_length + output_length),
+        outputs_taylor_transformer,
+        label="taylor transformer",
+    )
+    plt.plot(
+        range(input_length, input_length + output_length), outputs_transformer, label="transformer"
+    )
 
     # plt.title(f"mse: {mse_loss:.5f}")
     plt.legend()
     plt.xticks(range(0, input_length + output_length, 2))
-    plt.savefig(f"examples/plots/predictions/transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.png")
-    plt.savefig(f"examples/plots/predictions/transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.pdf")
-    plt.savefig(f"examples/plots/predictions/transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.svg")
+    plt.savefig(
+        f"examples/plots/predictions/transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.png"
+    )
+    plt.savefig(
+        f"examples/plots/predictions/transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.pdf"
+    )
+    plt.savefig(
+        f"examples/plots/predictions/transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.svg"
+    )
     plt.show()
 
-    plt.plot(inputs, label="inputs")
-    plt.plot(range(input_length, input_length + output_length), labels, label="ground truth")
-    plt.plot(range(input_length, input_length + output_length), outputs_linear_model, label="linear model")
-    plt.plot(range(input_length, input_length + output_length), outputs_quadratic_model, label="quadratic model")
+    plt.plot(inputs_view, label="inputs")
+    plt.plot(range(input_length, input_length + output_length), labels_view, label="ground truth")
+    plt.plot(
+        range(input_length, input_length + output_length),
+        outputs_linear_model,
+        label="linear model",
+    )
+    plt.plot(
+        range(input_length, input_length + output_length),
+        outputs_quadratic_model,
+        label="quadratic model",
+    )
     # plt.plot(range(input_length, input_length + output_length), outputs_quadratic_model_solved, label="quadratic model solved")
-    plt.plot(range(input_length, input_length + output_length), outputs_cubic_model, label="cubic model")
+    plt.plot(
+        range(input_length, input_length + output_length), outputs_cubic_model, label="cubic model"
+    )
     plt.legend()
     plt.xticks(range(0, input_length + output_length, 2))
-    plt.savefig(f"examples/plots/predictions/non-transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.png")
-    plt.savefig(f"examples/plots/predictions/non-transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.pdf")
-    plt.savefig(f"examples/plots/predictions/non-transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.svg")
+    plt.savefig(
+        f"examples/plots/predictions/non-transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.png"
+    )
+    plt.savefig(
+        f"examples/plots/predictions/non-transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.pdf"
+    )
+    plt.savefig(
+        f"examples/plots/predictions/non-transformers-{input_length}-{output_length}-{dataset}-{loss_function}-{i}.svg"
+    )
     plt.show()

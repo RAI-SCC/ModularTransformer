@@ -4,7 +4,6 @@ import torch
 
 from examples.data import get_data_electricity_hourly, get_loader
 from examples.model import QuadraticModel
-from examples.util import save_model
 
 input_length = 12
 output_length = 24
@@ -54,8 +53,8 @@ assert len(test_loader_all) == 1
 def square_inputs(inputs):
     x = inputs.squeeze(-1)
     _batch_size, _dim_in = x.shape
-    layer = model.lin0
-    x_squared = torch.empty(_batch_size, (_dim_in ** 2 + _dim_in) // 2)
+    # layer = model.lin0
+    x_squared = torch.empty(_batch_size, (_dim_in**2 + _dim_in) // 2)
     for j in range(_batch_size):
         triu_indices = torch.triu_indices(_dim_in, _dim_in)
         assert triu_indices.shape[1] == x_squared.shape[1]
@@ -75,7 +74,7 @@ def optimal_weights(inputs, labels):
     return weight_optimal, bias_optimal
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start_time = datetime.now()
     # generate linear regression problem with quadratic features
     inputs, labels = next(iter(train_loader_all))
@@ -89,8 +88,8 @@ if __name__ == '__main__':
 
     weight_optimal, bias_optimal = optimal_weights(inputs, labels)
     state_dict = model.lin0.state_dict()
-    state_dict['weight'] = weight_optimal.T
-    state_dict['bias'] = bias_optimal
+    state_dict["weight"] = weight_optimal.T
+    state_dict["bias"] = bias_optimal
     model.lin0.load_state_dict(state_dict)
 
     outputs_optimal = model(inputs)

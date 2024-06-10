@@ -1,19 +1,20 @@
 from datetime import datetime
 
 import matplotlib.pyplot as plt
-import polars as pl
 import torch
 
 from examples.model import QuadraticModel
 from examples.util import (
     Dataset,
     LossFunction,
+    add_to_results,
     evaluate_model,
     get_data_loaders,
+    get_device,
     get_loss_function,
     plot_samples,
     save_model,
-    train_one_epoch, add_to_results, get_device,
+    train_one_epoch,
 )
 
 
@@ -27,7 +28,9 @@ def train_quadratic_model(
     plot: bool = True,
 ):
     device = get_device()
-    model = QuadraticModel(dim_in=input_length, hidden_layers=[10], dim_out=output_length, device=device)
+    model = QuadraticModel(
+        dim_in=input_length, hidden_layers=[10], dim_out=output_length, device=device
+    )
     train_loader, test_loader = get_data_loaders(
         dataset,
         input_length,
@@ -122,10 +125,5 @@ if __name__ == "__main__":
     _dataset: Dataset = "electricity-hourly"
     _loss_function: LossFunction = "mse"
     train_quadratic_model(
-        _input_length,
-        _output_length,
-        _dataset,
-        _loss_function,
-        _epochs,
-        plot=False
+        _input_length, _output_length, _dataset, _loss_function, _epochs, plot=False
     )

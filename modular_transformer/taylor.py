@@ -6,9 +6,14 @@ from torch.nn import ReLU, Softmax
 
 from modular_transformer import Transformer
 from modular_transformer.layers import ClassicalTransformerDecoderLayer
-from modular_transformer.layers.attention_modules.attention_mechanisms.masking import AttentionMatrixMask
+from modular_transformer.layers.attention_modules.attention_mechanisms.masking import (
+    AttentionMatrixMask,
+)
 from modular_transformer.layers.attention_modules.output_modules import LinearOutputModule
-from modular_transformer.layers.taylor import TaylorTransformerEncoderLayer, TaylorTransformerDecoderLayer
+from modular_transformer.layers.taylor import (
+    TaylorTransformerDecoderLayer,
+    TaylorTransformerEncoderLayer,
+)
 
 
 class TaylorTransformer(Transformer):

@@ -3,16 +3,18 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import torch
 
-from examples.model import get_linear_model, get_hidden_size, size_quadratic
+from examples.model import get_hidden_size, get_linear_model, size_quadratic
 from examples.util import (
     Dataset,
     LossFunction,
+    add_to_results,
     evaluate_model,
     get_data_loaders,
+    get_device,
     get_loss_function,
     plot_samples,
     save_model,
-    train_one_epoch, add_to_results, get_device,
+    train_one_epoch,
 )
 
 
@@ -27,12 +29,13 @@ def train_linear_model(
 ):
     quadratic_size = size_quadratic(input_length, output_length, [10])
     hidden_size = get_hidden_size(
-        lambda h: (input_length + 1) * h + (h + 1) * output_length,
-        quadratic_size
+        lambda h: (input_length + 1) * h + (h + 1) * output_length, quadratic_size
     )
     # hidden_size = 20
     device = get_device()
-    model = get_linear_model(input_size=input_length, output_size=output_length, hidden_size=hidden_size, device=device)
+    model = get_linear_model(
+        input_size=input_length, output_size=output_length, hidden_size=hidden_size, device=device
+    )
     train_loader, test_loader = get_data_loaders(
         dataset,
         input_length,

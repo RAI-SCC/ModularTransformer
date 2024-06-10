@@ -1,20 +1,25 @@
-import os
 import pathlib
 from typing import Callable, Literal
 
+import polars as pl
 import torch
 import torchmetrics
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
-import polars as pl
 
-from examples.data import get_data_electricity, get_data_electricity_hourly, get_loader, get_data_ett
+from examples.data import (
+    get_data_electricity,
+    get_data_electricity_hourly,
+    get_data_ett,
+    get_loader,
+)
 
 PATH_RESULTS = "examples/model-weights-final2"
 
 
 Dataset = Literal["electricity", "electricity-hourly", "etth1", "etth2", "ettm1", "ettm2"]
 LossFunction = Literal["mse", "mae", "mape"]
+
 
 def mean_variance(values: list[float]) -> tuple[float, float]:
     mean = sum(values) / len(values)
@@ -26,21 +31,35 @@ def moving_average(x, w):
     return [sum(x[i : i + w]) / w for i in range(len(x) - w + 1)]
 
 
-def model_path(name: str, dataset: Dataset, input_length: int, output_length: int, loss_function: LossFunction):
+def model_path(
+    name: str, dataset: Dataset, input_length: int, output_length: int, loss_function: LossFunction
+):
     return f"{PATH_RESULTS}/{name}-{dataset}-{loss_function}-input{input_length}-output{output_length}.pt"
 
 
-def save_model(model, name: str, dataset: Dataset, input_length: int, output_length: int, loss_function: LossFunction):
+def save_model(
+    model,
+    name: str,
+    dataset: Dataset,
+    input_length: int,
+    output_length: int,
+    loss_function: LossFunction,
+):
     path = model_path(name, dataset, input_length, output_length, loss_function)
     print(f"Saving model to {path}")
     torch.save(model.state_dict(), path)
 
 
-def load_model_weights(model, name: str, dataset: Dataset, input_length: int, output_length: int, loss_function: LossFunction):
+def load_model_weights(
+    model,
+    name: str,
+    dataset: Dataset,
+    input_length: int,
+    output_length: int,
+    loss_function: LossFunction,
+):
     path = model_path(name, dataset, input_length, output_length, loss_function)
-    model.load_state_dict(
-        torch.load(path)
-    )
+    model.load_state_dict(torch.load(path))
 
 
 def train_one_epoch(
@@ -95,7 +114,9 @@ def evaluate_model(
             outputs = model(inputs.squeeze(-1)).unsqueeze(-1)
         loss_mse = torch.nn.functional.mse_loss(outputs.squeeze(-1), labels[:, :, 0])
         loss_mae = torch.nn.functional.l1_loss(outputs.squeeze(-1), labels[:, :, 0])
-        loss_mape = torchmetrics.functional.mean_absolute_percentage_error(outputs.squeeze(-1), labels[:, :, 0])
+        loss_mape = torchmetrics.functional.mean_absolute_percentage_error(
+            outputs.squeeze(-1), labels[:, :, 0]
+        )
         losses_mse.append(loss_mse.item())
         losses_mae.append(loss_mae.item())
         losses_mape.append(loss_mape.item())
@@ -129,19 +150,19 @@ def plot_samples(
         else:
             outputs = model(inputs.squeeze(-1)).unsqueeze(-1)
 
-        inputs = inputs[0, :, 0]
+        inputs_view = inputs[0, :, 0]
         outputs = outputs[0, :, 0]
-        labels = labels[0, :, 0]
-        mse_loss = torch.nn.functional.mse_loss(outputs, labels)
+        labels_view = labels[0, :, 0]
+        mse_loss = torch.nn.functional.mse_loss(outputs, labels_view)
 
-        plt.plot(inputs.numpy(), label="inputs")
+        plt.plot(inputs_view.numpy(), label="inputs")
         # plot outputs and ground truth behind input sequence
         plt.plot(
             range(_input_length, _input_length + _output_length), outputs.numpy(), label="outputs"
         )
         plt.plot(
             range(_input_length, _input_length + _output_length),
-            labels.numpy(),
+            labels_view.numpy(),
             label="ground truth",
         )
         plt.title(f"{title}{' ' if title else ''}mse: {mse_loss:.5f}")
@@ -180,7 +201,7 @@ def get_data_loaders(
         batch_size=batch_size,
         shuffle=True,
         positional_encoding=positional_encoding,
-        device=device
+        device=device,
     )
     test_loader = get_loader(
         data_test,
@@ -189,7 +210,7 @@ def get_data_loaders(
         batch_size=batch_size,
         shuffle=True,
         positional_encoding=positional_encoding,
-        device=device
+        device=device,
     )
     return train_loader, test_loader
 
@@ -262,6 +283,4 @@ def add_to_results(
 
 
 def get_device() -> torch.device:
-    return torch.device(
-        "cuda" if torch.cuda.is_available() else "cpu"
-    )
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")

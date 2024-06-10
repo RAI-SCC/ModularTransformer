@@ -4,10 +4,15 @@ import torch
 from torch import Tensor
 from torch.nn import ReLU
 
-from modular_transformer.layers import TransformerEncoderLayer, TransformerDecoderLayer
-from modular_transformer.layers.attention_modules.attention_mechanisms.masking import AttentionMatrixMask
+from modular_transformer.layers import TransformerDecoderLayer, TransformerEncoderLayer
+from modular_transformer.layers.attention_modules.attention_mechanisms.masking import (
+    AttentionMatrixMask,
+)
 from modular_transformer.layers.attention_modules.output_modules import DoubleLinearOutputModule
-from modular_transformer.layers.attention_modules.taylor import TaylorSelfAttentionModule, TaylorCrossAttentionModule
+from modular_transformer.layers.attention_modules.taylor import (
+    TaylorCrossAttentionModule,
+    TaylorSelfAttentionModule,
+)
 
 
 class TaylorTransformerEncoderLayer(TransformerEncoderLayer):
