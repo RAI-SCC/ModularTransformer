@@ -47,6 +47,8 @@ consistency checks. The components all come from submodules and their syntax and
         output_module OutputModule: output module to apply to the final decoder output
         num_layers int: number of layers
 
+![](./plots/former_plot.png)
+
 **Other available classes**
 
 The main available class is `ClassicalTransformer`, which provides a very similar interface to th torch.nn.Transformer,
@@ -109,6 +111,8 @@ consistency checks. The components all come from submodules and their syntax and
         device Optional[torch.device]: computation device the module is initialized on
         dtype Optional[torch.dtype]: data type of the module
 
+![](./plots/coder_plot.png)
+
 **Other available classes**
 
 These implement specific variants of self- and cross-attention. Typically, each variant implements a `EncoderLayer` and 
@@ -159,6 +163,8 @@ consistency checks. The components all come from submodules and their syntax and
         head_reduction HeadReduction: recombines the results of the heads
         output_module OutputModule: maps the recombined output to the output dimension
         nhead int: number of identical heads to create
+
+![](./plots/attention_plot.png)
 
 **Other available classes**
 
