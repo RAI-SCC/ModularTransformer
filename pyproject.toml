@@ -28,10 +28,23 @@ include = [
     "/modular_transformer",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "ruff",
+    "sphinx-autoapi",
+    "sphinx-rtd-theme",
+    "sphinxcontrib-napoleon",
+    "sphinxemoji",
+]
+
 [tool.ruff]
 line-length = 100
 target-version = "py38"
 
+exclude = [
+    "docs",
+]
 select = [
     # pyflakes
     "F",
