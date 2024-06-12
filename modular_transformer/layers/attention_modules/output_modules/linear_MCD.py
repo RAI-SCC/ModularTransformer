@@ -50,20 +50,18 @@ class LinearMCDOutputModule(OutputModule):
             attention_output_features=attention_output_features,
             output_features=output_features
         )
-        if gaussian:
-            if weight_drop:
-                self.linear = GaussianWeightMCDLayer(attention_output_features, output_features, bias, std_dev,
-                                                    istrainablesigma, **factory_kwargs)
-            else:
-                self.linear = GaussianNodeMCDLayer(attention_output_features, output_features, bias, std_dev,
-                                                   **factory_kwargs)
+        if gaussian and weight_drop:
+            self.linear = GaussianWeightMCDLayer(attention_output_features, output_features, bias, std_dev,
+                                                istrainablesigma, **factory_kwargs)
+        elif gaussian and not weight_drop:
+            self.linear = GaussianNodeMCDLayer(attention_output_features, output_features, bias, std_dev,
+                                                **factory_kwargs)
+        elif weight_drop and not gaussian:
+            self.linear = BernoulliWeightMCDLayer(attention_output_features, output_features, bias, rate,
+                                                **factory_kwargs)
         else:
-            if weight_drop:
-                self.linear = BernoulliWeightMCDLayer(attention_output_features, output_features, bias, rate,
-                                                    **factory_kwargs)
-            else:
-                self.linear = BernoulliNodeMCDLayer(attention_output_features, output_features, bias, rate,
-                                                    **factory_kwargs)
+            self.linear = BernoulliNodeMCDLayer(attention_output_features, output_features, bias, rate,
+                                                **factory_kwargs)
         # self.linear = Linear(self.attention_output_features, self.output_features, bias=bias, **factory_kwargs)
         self.activation = getattr(torch.nn, activation)() if isinstance(activation, str) else activation
 
@@ -116,28 +114,26 @@ class DoubleLinearMCDOutputModule(OutputModule):
             attention_output_features=attention_output_features,
             output_features=output_features
         )
-        if gaussian:
-            if weight_drop:
-                self.linear1 = GaussianWeightMCDLayer(attention_output_features, dim_feedforward, bias, std_dev,
-                                                    istrainablesigma, **factory_kwargs)
-                self.linear2 = GaussianWeightMCDLayer(dim_feedforward, output_features, bias, std_dev,
-                                                      istrainablesigma, **factory_kwargs)
-            else:
-                self.linear1 = GaussianNodeMCDLayer(attention_output_features, dim_feedforward, bias, std_dev,
+        if gaussian and weight_drop:
+            self.linear1 = GaussianWeightMCDLayer(attention_output_features, dim_feedforward, bias, std_dev,
+                                                istrainablesigma, **factory_kwargs)
+            self.linear2 = GaussianWeightMCDLayer(dim_feedforward, output_features, bias, std_dev,
+                                                  istrainablesigma, **factory_kwargs)
+        elif gaussian and not weight_drop:
+            self.linear1 = GaussianNodeMCDLayer(attention_output_features, dim_feedforward, bias, std_dev,
+                                               **factory_kwargs)
+            self.linear2 = GaussianNodeMCDLayer(dim_feedforward, output_features, bias, std_dev,
+                                                **factory_kwargs)
+        elif weight_drop and not gaussian:
+            self.linear1 = BernoulliWeightMCDLayer(attention_output_features, dim_feedforward, bias, rate,
+                                                **factory_kwargs)
+            self.linear2 = BernoulliWeightMCDLayer(dim_feedforward, output_features, bias, rate,
                                                    **factory_kwargs)
-                self.linear2 = GaussianNodeMCDLayer(dim_feedforward, output_features, bias, std_dev,
-                                                    **factory_kwargs)
         else:
-            if weight_drop:
-                self.linear1 = BernoulliWeightMCDLayer(attention_output_features, dim_feedforward, bias, rate,
-                                                    **factory_kwargs)
-                self.linear2 = BernoulliWeightMCDLayer(dim_feedforward, output_features, bias, rate,
-                                                       **factory_kwargs)
-            else:
-                self.linear1 = BernoulliNodeMCDLayer(attention_output_features, dim_feedforward, bias, rate,
-                                                    **factory_kwargs)
-                self.linear2 = BernoulliNodeMCDLayer(dim_feedforward, output_features, bias, rate,
-                                                     **factory_kwargs)
+            self.linear1 = BernoulliNodeMCDLayer(attention_output_features, dim_feedforward, bias, rate,
+                                                **factory_kwargs)
+            self.linear2 = BernoulliNodeMCDLayer(dim_feedforward, output_features, bias, rate,
+                                                 **factory_kwargs)
 
         # self.linear1 = Linear(self.attention_output_features, dim_feedforward, bias=bias, **factory_kwargs)
         # self.linear2 = Linear(dim_feedforward, self.output_features, bias=bias, **factory_kwargs)
