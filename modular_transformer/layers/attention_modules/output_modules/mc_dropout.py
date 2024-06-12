@@ -5,7 +5,7 @@ from torch.nn import functional as f
 #self.linear = Linear(self.attention_output_features, self.output_features, bias=bias, **factory_kwargs)
 class GaussianWeightMCDLayer(torch.nn.Module):
     def __init__(self, input_size, output_size, bias, sigma, is_trainable_sigma, **factory_kwargs):
-        super(GaussianWeightMCDLayer, self).__init__()
+        super().__init__()
         self.lin_layer = nn.Linear(input_size, output_size, bias=bias, **factory_kwargs)
 
         if is_trainable_sigma:
@@ -41,7 +41,7 @@ class GaussianWeightMCDLayer(torch.nn.Module):
 
 class GaussianNodeMCDLayer(torch.nn.Module):
     def __init__(self, input_size, output_size, bias, sigma, **factory_kwargs):
-        super(GaussianNodeMCDLayer, self).__init__()
+        super().__init__()
         self.lin_layer = nn.Linear(input_size, output_size,  bias=bias, **factory_kwargs)
         self.sigma = sigma
         self.bias = bias
@@ -57,7 +57,7 @@ class GaussianNodeMCDLayer(torch.nn.Module):
 
 class BernoulliWeightMCDLayer(torch.nn.Module):
     def __init__(self, input_size, output_size, bias, dropout_rate, **factory_kwargs):
-        super(BernoulliWeightMCDLayer, self).__init__()
+        super().__init__()
         self.lin_layer = nn.Linear(input_size, output_size, bias=bias, **factory_kwargs)
         self.dropout_rate = dropout_rate
         self.bias = bias
@@ -77,7 +77,7 @@ class BernoulliWeightMCDLayer(torch.nn.Module):
 
 class BernoulliNodeMCDLayer(torch.nn.Module):
     def __init__(self, input_size, output_size, bias, dropout_rate, **factory_kwargs):
-        super(BernoulliNodeMCDLayer, self).__init__()
+        super().__init__()
         self.lin_layer = nn.Linear(input_size, output_size, bias=bias, **factory_kwargs)
         self.dropout_rate = dropout_rate
         self.bias = bias
