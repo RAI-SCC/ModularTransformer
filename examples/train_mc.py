@@ -2,7 +2,7 @@ from datetime import datetime
 import torch
 from torch.utils.data import DataLoader
 from examples.data import get_data_electricity, get_loader, get_loader_overfit
-from modular_transformer.classical_MC import ClassicalMCDTransformer
+from modular_transformer.classical_mc import ClassicalMCDTransformer
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import math
