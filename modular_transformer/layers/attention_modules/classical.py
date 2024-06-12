@@ -1,3 +1,4 @@
+"""Classical attention layers."""
 from typing import Optional, Union
 
 import torch
@@ -17,9 +18,10 @@ __all__ = [
 
 class ClassicalSelfAttentionModule(SelfAttentionModule):
     """
-    Self attention module as used in the classical Transformer (Vaswani et al 17)
+    Self attention module as used in the classical Transformer (Vaswani et al 2017).
 
     Parameters
+    ----------
         :param input_features int: size of the input feature dimension
         :param d_model int: internal number of features for the attention mechanism
         :param nhead int: number of attention heads
@@ -78,9 +80,10 @@ class ClassicalSelfAttentionModule(SelfAttentionModule):
 
 class ClassicalCrossAttentionModule(CrossAttentionModule):
     """
-    Cross attention module as used in the classical Transformer (Vaswani et al 17)
+    Cross attention module as used in the classical Transformer (Vaswani et al 17).
 
     Parameters
+    ----------
         :param input_features int: size of the (first) input feature dimension
         :param other_features int: size of the other (second) input feature dimension
         :param d_model int: internal number of features for the attention mechanism

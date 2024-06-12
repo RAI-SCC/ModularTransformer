@@ -1,3 +1,4 @@
+"""Linear or MLP output modules."""
 from typing import Callable, Optional, Union
 
 import torch
@@ -14,11 +15,12 @@ __all__ = [
 
 class LinearOutputModule(OutputModule):
     """
-    A simple single layer output module with optional activation
+    A simple single layer output module with optional activation.
 
     Commonly used to reduce the nhead * dmodel output features of classical multihead attention back to dmodel
 
     Parameters
+    ----------
         :param attention_output_features int: number of input nodes and size of the feature dimension of the intended input
         :param output_features int: number of output features (default: attention_output_features)
         :param device Optional[torch.device]: computation device the module is initialized on
@@ -49,6 +51,7 @@ class LinearOutputModule(OutputModule):
         )
 
     def forward(self, input_: Tensor) -> Tensor:
+        """Forward pass through the model."""
         if self.activation is not None:
             output = self.activation(self.linear(input_))
         else:
@@ -58,11 +61,12 @@ class LinearOutputModule(OutputModule):
 
 class DoubleLinearOutputModule(OutputModule):
     """
-    A two layer output module with optional activation after the first layer
+    A two layer output module with optional activation after the first layer.
 
     Commonly used as "feedforward layer" in the classical Transformer architecture
 
     Parameters
+    ----------
         :param attention_output_features int: number of input nodes and size of the feature dimension of the intended input
         :param output_features int: number of output features (default: attention_output_features)
         :param device Optional[torch.device]: computation device the module is initialized on
@@ -96,6 +100,7 @@ class DoubleLinearOutputModule(OutputModule):
         )
 
     def forward(self, input_: Tensor) -> Tensor:
+        """Forward pass through the model."""
         if self.activation is not None:
             output = self.linear2(self.activation(self.linear1(input_)))
         else:

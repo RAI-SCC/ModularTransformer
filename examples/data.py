@@ -1,3 +1,4 @@
+"""Module for datasets and data handling utilities."""
 import math
 from typing import Literal, Optional
 
@@ -7,6 +8,8 @@ from torch.utils.data import DataLoader
 
 
 class TimeseriesDataset(torch.utils.data.Dataset):
+    """Dataset for generic time series data."""
+
     def __init__(
         self,
         x: torch.Tensor,
@@ -20,6 +23,7 @@ class TimeseriesDataset(torch.utils.data.Dataset):
         self.device = device
 
     def __len__(self):
+        """Return number of samples."""
         return len(self.x) - (self.input_seq_len + self.output_seq_len)
 
     @staticmethod
@@ -34,6 +38,7 @@ class TimeseriesDataset(torch.utils.data.Dataset):
         return [x, y]
 
     def __getitem__(self, index: int):
+        """Return one item."""
         sequence = self.x[index : index + self.input_seq_len]
         next_elements = self.x[
             index + self.input_seq_len : index + self.input_seq_len + self.output_seq_len
@@ -61,6 +66,8 @@ class TimeseriesDataset(torch.utils.data.Dataset):
 
 
 class TimeseriesDatasetMultivariate(torch.utils.data.Dataset):
+    """Time series datasets with multiple observables."""
+
     def __init__(self, x: torch.Tensor, dimension: int, input_seq_len: int, output_seq_len: int):
         self.x = x
         self.dimension = dimension
@@ -68,9 +75,11 @@ class TimeseriesDatasetMultivariate(torch.utils.data.Dataset):
         self.output_seq_len = output_seq_len
 
     def __len__(self):
+        """Return number of samples."""
         return (len(self.x) - (self.input_seq_len + self.output_seq_len)) // self.dimension
 
     def __getitem__(self, index: int):
+        """Return one item."""
         sequence = self.x[index : index + self.input_seq_len * self.dimension]
         next_elements = self.x[
             index + self.input_seq_len : index + self.input_seq_len + self.output_seq_len
@@ -81,7 +90,10 @@ class TimeseriesDatasetMultivariate(torch.utils.data.Dataset):
         return (sequence, next_elements)
 
 
-def get_data_electricity(device: torch.device | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+def get_data_electricity(
+    device: Optional[torch.device] = None,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Read ENTSO-E power consumption from csv file and return normalized and split into train and test as tensors."""
     data = pl.read_csv(
         "./data/western-europe-power-consumption/de.csv",
         dtypes={"start": pl.Datetime, "end": pl.Datetime, "load": pl.Float32},
@@ -98,8 +110,9 @@ def get_data_electricity(device: torch.device | None = None) -> tuple[torch.Tens
 
 
 def get_data_electricity_hourly(
-    device: torch.device | None = None,
+    device: Optional[torch.device] = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
+    """Read ENTSO-E power consumption from csv file and return hourly instead of every 15 minutes."""
     x_train, x_test = get_data_electricity(device=device)
     # skip every 4 values
     x_train = x_train[::4]
@@ -110,6 +123,7 @@ def get_data_electricity_hourly(
 def get_ett_time_series(
     i: Literal["h1", "h2", "m1", "m2"] = "h1", device: Optional[torch.device] = None
 ) -> torch.Tensor:
+    """Read ETT data from csv and return normalized as tensor."""
     schema = {
         "date": pl.Datetime,
         "HUFL": pl.Float64,
@@ -135,6 +149,7 @@ def get_ett_time_series(
 def get_data_ett(
     i: Literal["h1", "h2", "m1", "m2"] = "h1", device: Optional[torch.device] = None
 ) -> tuple[torch.Tensor, torch.Tensor]:
+    """Read ETT data from csv and return split into train and test as tensor."""
     x = get_ett_time_series(i)
     x_len = len(x)
     # only take a look at target value
@@ -143,14 +158,18 @@ def get_data_ett(
 
 
 class NoPositionalEncoding(torch.utils.data.Dataset):
+    """Dataset without positional encoding."""
+
     def __init__(self, dataset):
         super().__init__()
         self.dataset = dataset
 
     def __len__(self):
+        """Return number of samples."""
         return len(self.dataset)
 
     def __getitem__(self, i):
+        """Return one item."""
         return self.dataset[i][0][:, 0].unsqueeze(-1), self.dataset[i][1][:, 0].unsqueeze(-1)
 
 
@@ -163,6 +182,7 @@ def get_loader(
     positional_encoding: bool = True,
     device: torch.device | None = None,
 ) -> DataLoader:
+    """Return a DataLoader."""
     dataset = TimeseriesDataset(data, input_length, output_length, device=device)
 
     if not positional_encoding:
@@ -176,6 +196,7 @@ def get_loader_overfit(
     output_length: int,
     batch_size: int,
 ) -> DataLoader:
+    """Return a DataLoader on a downsampled dataset for overfitting."""
     dataset = TimeseriesDataset(data[: input_length * 2 + 1], input_length, output_length)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     assert len(loader) == 1
@@ -190,5 +211,6 @@ def get_loader_multivariate(
     batch_size: int,
     shuffle: bool = True,
 ) -> DataLoader:
+    """Return a DataLoader on a multivariate dataset."""
     dataset = TimeseriesDatasetMultivariate(data, dimension, input_length, output_length)
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)

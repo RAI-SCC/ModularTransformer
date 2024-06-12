@@ -1,3 +1,4 @@
+"""Output base modules."""
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -12,7 +13,7 @@ __all__ = [
 
 class OutputModule(Module, ABC):
     """
-    Abstract base class for all 'OutputModule's
+    Abstract base class for all 'OutputModule's.
 
     'OutputModule's can be any torch.nn.Module that takes one input Tensor and provides an output Tensor of the same
     shape except (possibly) in the last dimension.
@@ -43,12 +44,14 @@ class OutputModule(Module, ABC):
         self._check_validity()
 
     def _check_validity(self) -> None:
-        """Checks the consistency of the module. Should be implemented by subclasses, if needed."""
+        """Check the consistency of the module. Should be implemented by subclasses, if needed."""
         pass
 
     @abstractmethod
     def forward(self, input_: Tensor) -> Tensor:
         """
+        Forward pass through the module.
+
         This accepts a Tensor of shape (*, S, F) and should output a Tensor of shape (*, S, O), where S is the
         input sequence length, F is self.attention_output_features, and O is self.output_features
         """

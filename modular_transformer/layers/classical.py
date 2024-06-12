@@ -1,3 +1,4 @@
+"""Classical transformer layers."""
 from typing import Callable, Optional, Union
 
 import torch
@@ -17,9 +18,10 @@ __all__ = [
 
 class ClassicalTransformerEncoderLayer(TransformerEncoderLayer):
     """
-    A Transformer encoder layer as defined in Vasiwani et al 17
+    A Transformer encoder layer as defined in Vaswani et al (2017).
 
     Parameters
+    ----------
         :param input_features int: size of the input feature dimension
         :param d_model int: internal number of features for the attention mechanism
         :param nhead int: number of attention heads
@@ -82,9 +84,10 @@ class ClassicalTransformerEncoderLayer(TransformerEncoderLayer):
 
 class ClassicalTransformerDecoderLayer(TransformerDecoderLayer):
     """
-    A Transformer decoder layer as defined in Vasiwani et al 17
+    A Transformer decoder layer as defined in Vaswani et al 17.
 
     Parameters
+    ----------
         :param input_features int: size of the (first) input feature dimension
         :param other_features int: size of the other (second) input feature dimension
         :param d_model int: internal number of features for the attention mechanism

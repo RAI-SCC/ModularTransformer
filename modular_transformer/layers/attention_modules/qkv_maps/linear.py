@@ -1,3 +1,4 @@
+"""Linear projections for query, key, and value embeddings."""
 from typing import Optional, Tuple, Union
 
 import torch
@@ -15,9 +16,10 @@ __all__ = [
 
 class LinearQmap(Qmap):
     """
-    Default q_mapping using a single torch.nn.Linear layer
+    Default q_mapping using a single torch.nn.Linear layer.
 
     Parameters
+    ----------
         :param input_features int: number of input nodes and size of the feature dimension of the intended input
         :param q_features int: number of output features
         :param device Optional[torch.device]: computation device the module is initialized on
@@ -46,6 +48,7 @@ class LinearQmap(Qmap):
         )
 
     def forward(self, input_: Tensor) -> Tensor:
+        """Forward pass through the module."""
         output = self.linear(input_)
         if self.activation is not None:
             output = self.activation(output)
@@ -54,11 +57,12 @@ class LinearQmap(Qmap):
 
 class LinearKVmap(KVmap):
     """
-    Default kv_mapping using a single torch.nn.Linear layer
+    Default kv_mapping using a single torch.nn.Linear layer.
 
     Slight efficiency increase via obtaining k and v from one layer with their combined output features.
 
     Parameters
+    ----------
         :param input_features int: number of input nodes and size of the feature dimension of the intended input
         :param k_features int: number of output features of the k-component (i.e. first) output
         :param v_features Optional[int]: number of output features of the v-component (i.e. second) output (default: k_features)
@@ -97,6 +101,7 @@ class LinearKVmap(KVmap):
         )
 
     def forward(self, input_: Tensor) -> Tuple[Tensor, Tensor]:
+        """Forward pass through the module."""
         output = self.linear(input_)
         if self.activation is not None:
             output = self.activation(output)
@@ -106,11 +111,12 @@ class LinearKVmap(KVmap):
 
 class LinearQKVmap(QKVmap):
     """
-    Default qkv_mapping using a single torch.nn.Linear layer
+    Default qkv_mapping using a single torch.nn.Linear layer.
 
     Slight efficiency increase via obtaining q, k, and v from one layer with their combined output features.
 
     Parameters
+    ----------
         :param input_features int: number of input nodes and size of the feature dimension of the intended input
         :param q_features int: number of output features of the q-component (i.e. first) output
         :param k_features Optional[int]: number of output features of the k-component (i.e. second) output (default: q_features)
@@ -152,6 +158,7 @@ class LinearQKVmap(QKVmap):
         )
 
     def forward(self, input_: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
+        """Forward pass through the module."""
         output = self.linear(input_)
         if self.activation is not None:
             output = self.activation(output)

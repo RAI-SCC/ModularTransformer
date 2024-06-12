@@ -1,3 +1,4 @@
+"""Exampel script evaluating the taylor transformer."""
 import matplotlib.pyplot as plt
 import torch
 

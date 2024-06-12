@@ -44,8 +44,9 @@ target-version = "py38"
 
 exclude = [
     "docs",
+    "examples",
 ]
-select = [
+lint.select = [
     # pyflakes
     "F",
     # pycodestyle
@@ -69,9 +70,10 @@ select = [
     # pep8-naming
     "N",
     # pyupgrade
-    "UP"
+    "UP",
+    "D",
 ]
-ignore = [
+lint.ignore = [
     # may cause conflicts with ruff formatter
     "E501",
     "W191",
@@ -84,3 +86,6 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"

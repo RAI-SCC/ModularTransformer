@@ -1,3 +1,4 @@
+"""Classical Transformer propsed by Vaswani et al (2017)."""
 from typing import Callable, Optional, Union
 
 import torch
@@ -12,9 +13,10 @@ from .layers.attention_modules.output_modules import LinearOutputModule
 
 class ClassicalTransformer(Transformer):
     """
-    The classical Transformer architecture as propose by Vaswani et 17
+    The classical Transformer architecture as propose by Vaswani et al (2017).
 
-    Parameters:
+    Parameters
+    ----------
         :param input_features int: size of the input feature dimension
         :param d_model int: internal number of features for the attention mechanism
         :param nhead int: number of attention heads
@@ -109,4 +111,5 @@ class ClassicalTransformer(Transformer):
         )
 
     def forward(self, encoder_input: Tensor, decoder_input: Tensor) -> Tensor:
+        """Forward pass through the entire model."""
         return super().forward(encoder_input, decoder_input)

@@ -1,3 +1,4 @@
+"""Collection of transformer output modules."""
 from .base import OutputModule
 from .linear import DoubleLinearOutputModule, LinearOutputModule
 from .none import NoModule

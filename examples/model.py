@@ -1,3 +1,4 @@
+"""Implementations of taylor models of different orders."""
 from math import ceil, sqrt
 
 import torch
@@ -5,9 +6,7 @@ from torch import nn
 
 
 def linear_hidden_size(input_size: int, output_size: int, hidden_size_quadratic) -> int:
-    """
-    Calculates the hidden size of a linear model with approximately the same number of parameters as the quadratic model.
-    """
+    """Calculate the hidden size of a linear model with approximately the same number of parameters as the quadratic model."""
     return ceil(
         (
             (input_size + input_size**2 + 1) * hidden_size_quadratic
@@ -18,9 +17,7 @@ def linear_hidden_size(input_size: int, output_size: int, hidden_size_quadratic)
 
 
 def get_hidden_size(size_function, quadratic_size: int) -> int:
-    """
-    Calculates the hidden size of a linear model with approximately the same number of parameters as the quadratic model.
-    """
+    """Calculate the hidden size of a linear model with approximately the same number of parameters as the quadratic model."""
     for i in range(1000):
         if size_function(i) > quadratic_size:
             return i
@@ -30,9 +27,7 @@ def get_hidden_size(size_function, quadratic_size: int) -> int:
 def multiple_linear_hidden_size(
     input_size: int, output_size: int, hidden_size_quadratic: int
 ) -> int:
-    """
-    Calculates the hidden size of a linear model with hidden layers with approximately the same number of parameters as the quadratic model.
-    """
+    """Calculate the hidden size of a linear model with hidden layers with approximately the same number of parameters as the quadratic model."""
     return ceil(
         (
             -(input_size + 2 + output_size)
@@ -56,9 +51,7 @@ def multiple_linear_hidden_size(
 def multiple_linear_hidden_size_multiple_quad(
     input_size: int, output_size: int, hidden_size_quadratic: int
 ) -> int:
-    """
-    Calculates the hidden size of a linear model with hidden layers with approximately the same number of parameters as the quadratic model.
-    """
+    """Calculate the hidden size of a linear model with hidden layers with approximately the same number of parameters as the quadratic model."""
     return ceil(
         (
             -(input_size + 2 + output_size)
@@ -82,6 +75,7 @@ def multiple_linear_hidden_size_multiple_quad(
 
 
 def size_quadratic(input_size: int, output_size: int, hidden_layers: list[int]) -> int:
+    """Calculate the number of parameters of a quadratic model with the given latent space dimensions."""
     params = 0
     dim_in = input_size
     for dim_hidden in hidden_layers:
@@ -94,6 +88,7 @@ def size_quadratic(input_size: int, output_size: int, hidden_layers: list[int]) 
 def get_linear_model(
     input_size: int, output_size: int, hidden_size: int = 10, device: torch.device | None = None
 ):
+    """Construct an MLP with hidden ReLU activations with the given latent space dimensions."""
     return nn.Sequential(
         nn.Linear(input_size, hidden_size, device=device),
         nn.ReLU(),
@@ -105,6 +100,7 @@ def get_linear_model(
 def get_linear_model_multiple_layers(
     input_size: int, output_size: int, hidden_size: int = 10, device: torch.device | None = None
 ):
+    """Construct a deep MLP with ReLU activations."""
     return nn.Sequential(
         nn.Linear(input_size, hidden_size, device=device),
         nn.ReLU(),
@@ -118,6 +114,8 @@ def get_linear_model_multiple_layers(
 
 
 class QuadraticModel(nn.Module):
+    """A quadratic taylor MLP."""
+
     def __init__(
         self,
         dim_in: int,
@@ -144,12 +142,14 @@ class QuadraticModel(nn.Module):
         )
 
     def n_params(self):
+        """Calculate the total number of parameters of the model."""
         n_params = 0
         for i in range(len(self.hidden_layers) + 1):
             n_params += getattr(self, f"lin{i}").weight.numel()
         return n_params
 
     def forward(self, x):
+        """Calculate the forward pass."""
         _batch_size = x.shape[0]
         # x.shape: (batch_size, 1, dim_in, dim_in)
         x = self.flatten(x)
@@ -171,8 +171,11 @@ class QuadraticModel(nn.Module):
 
 
 class CubicModel(nn.Module):
+    """A cubic taylor MLP."""
+
     @staticmethod
     def dim_cubed(dim_in: int) -> int:
+        """Calculate the needed number of dimensions given the dimension of the corresponding linear model."""
         return dim_in + (dim_in**2 + dim_in) // 2 + dim_in
 
     def __init__(
@@ -197,12 +200,14 @@ class CubicModel(nn.Module):
         )
 
     def n_params(self):
+        """Calculate the total number of parameters of the model."""
         n_params = 0
         for i in range(len(self.hidden_layers) + 1):
             n_params += getattr(self, f"lin{i}").weight.numel()
         return n_params
 
     def forward(self, x):
+        """Calculate the forward pass."""
         _batch_size = x.shape[0]
         # x.shape: (batch_size, 1, dim_in, dim_in)
         x = self.flatten(x)

@@ -1,3 +1,4 @@
+"""Attention masking utilities."""
 from .base import AttentionMatrixMask
 from .triangular import TriangularMask
 

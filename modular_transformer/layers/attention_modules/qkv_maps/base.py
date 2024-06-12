@@ -1,3 +1,4 @@
+"""Base modules."""
 import copy
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple, overload
@@ -17,7 +18,7 @@ __all__ = [
 
 class Qmap(Module, ABC):
     """
-    Abstract base class for all 'Qmap's
+    Abstract base class for all 'Qmap's.
 
     'Qmap's are torch.modules with a consistent interface for use in mapping from an input to query, key or value of an
     attention_mechanism.
@@ -55,12 +56,14 @@ class Qmap(Module, ABC):
         self._check_validity()
 
     def _check_validity(self) -> None:
-        """Checks the consistency of the module. Should be implemented by subclasses, if needed."""
+        """Check the consistency of the module. Should be implemented by subclasses, if needed."""
         pass
 
     @abstractmethod
     def forward(self, input_: Tensor) -> Tensor:
         """
+        Forward pass through the module.
+
         This accepts a Tensor of shape (*, S, F) and should output a Tensor of shape (*, S, Q), where S is the
         input sequence length, F is input_features, and Q is q_features
         """
@@ -76,6 +79,8 @@ class Qmap(Module, ABC):
 
     def __add__(self, other):
         """
+        Add map to other.
+
         Two 'Qmap's can be added yielding a KVmap, where the first argument becomes the K-component and the second the
         V-component. Similarly, Qmap + KVmap = QKVmap. KVmap + Qmap is intentionally disabled, since it would enable
         Qmap + Qmap + Qmap = QKVmap, which counterintuitively has the third input working as the Q-component. Use
@@ -93,7 +98,8 @@ class Qmap(Module, ABC):
 
     def as_KVmap(self) -> "CompositeKVmap":  # noqa: N802
         """
-        Creates a KVmap that uses independent copies of self for both components
+        Create a KVmap that uses independent copies of self for both components.
+
         :return CompositeKVmap:
         """
         k_map = self
@@ -102,7 +108,8 @@ class Qmap(Module, ABC):
 
     def as_QKVmap(self) -> "CompositeQKVmap":  # noqa: N802
         """
-        Creates a QKVmap that uses independent copies of self for all components
+        Create a QKVmap that uses independent copies of self for all components.
+
         :return CompositeQKVmap:
         """
         q_map = copy.deepcopy(self)
@@ -112,7 +119,7 @@ class Qmap(Module, ABC):
 
 class KVmap(Module, ABC):
     """
-    Abstract base class for all 'KVmap's
+    Abstract base class for all 'KVmap's.
 
     'KVmap's are torch.modules with a consistent interface for use in mapping from an input to key and value of an
     attention_mechanism.
@@ -148,11 +155,11 @@ class KVmap(Module, ABC):
         self._check_validity()
 
     def _check_validity(self) -> None:
-        """Checks the consistency of the module. Should be implemented by subclasses, if needed."""
+        """Check the consistency of the module. Should be implemented by subclasses, if needed."""
         pass
 
     def __add__(self, other) -> None:
-        """Raises an error, see Qmap for details"""
+        """Raise an error, see Qmap for details."""
         if isinstance(other, Qmap):
             raise TypeError(
                 "Use Qmap + KVmap instead! This prevents counterintuitive behaviour when adding 3 Qmaps"
@@ -163,6 +170,8 @@ class KVmap(Module, ABC):
     @abstractmethod
     def forward(self, input_: Tensor) -> Tuple[Tensor, Tensor]:
         """
+        Forward pass through the module.
+
         This accepts a Tensor of shape (*, S, F) and should output two Tensors of shape (*, S, K), and (*, S, V),
         where S is the input sequence length, F is input_features, K is k_features, and V is v_features
         """
@@ -171,7 +180,7 @@ class KVmap(Module, ABC):
 
 class QKVmap(Module, ABC):
     """
-    Abstract base class for all 'QKVmap's
+    Abstract base class for all 'QKVmap's.
 
     'KVmap's are torch.modules with a consistent interface for use in mapping from an input to query, key, and value of
     an attention_mechanism.
@@ -210,12 +219,14 @@ class QKVmap(Module, ABC):
         self._check_validity()
 
     def _check_validity(self) -> None:
-        """Checks the consistency of the module. Should be implemented by subclasses, if needed."""
+        """Check the consistency of the module. Should be implemented by subclasses, if needed."""
         pass
 
     @abstractmethod
     def forward(self, input_: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
         """
+        Forward pass through the module.
+
         This accepts a Tensor of shape (*, S, F) and should output three Tensors of shape (*, S, Q), (*, S, K),
         and (*, S, V) where S is the input sequence length, F is input_features, Q is q_features, K is k_features,
         and V is v_features
@@ -237,11 +248,12 @@ class CompositeKVmap(KVmap):
         )
 
     def _check_validity(self) -> None:
-        """Checks the consistency of the module"""
+        """Check the consistency of the module."""
         super()._check_validity()
         assert self.k_map.input_features == self.v_map.input_features
 
     def forward(self, input_: Tensor) -> Tuple[Tensor, Tensor]:
+        """Forward pass through the module."""
         k = self.k_map(input_)
         v = self.v_map(input_)
         return k, v
@@ -262,11 +274,12 @@ class CompositeQKVmap(QKVmap):
         )
 
     def _check_validity(self) -> None:
-        """Checks the consistency of the module"""
+        """Check the consistency of the module."""
         super()._check_validity()
         assert self.q_map.input_features == self.kv_map.input_features
 
     def forward(self, input_: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
+        """Forward pass through the module."""
         q = self.q_map(input_)
         k, v = self.kv_map(input_)
         return q, k, v

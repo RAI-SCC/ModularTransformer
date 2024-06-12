@@ -1,3 +1,4 @@
+"""Attention module base class."""
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -12,7 +13,7 @@ __all__ = [
 
 class AttentionModule(Module, ABC):
     """
-    Abstract base class for all `AttentionModule`s
+    Abstract base class for all `AttentionModule`s.
 
     Responsible for implementing the attention mechanism.
     `AttentionModules` should be head agnostic for head interactions, see `HeadReduction`. They have access to the last
@@ -48,18 +49,20 @@ class AttentionModule(Module, ABC):
         self._check_validity()
 
     def _check_validity(self) -> None:
-        """Checks the consistency of the module. Should be implemented by subclasses, if needed."""
+        """Check the consistency of the module. Should be implemented by subclasses, if needed."""
         pass
 
     @property
     @abstractmethod
     def output_features(self) -> int:
-        """Provides the number of output_features for consistency checks"""
+        """Provide the number of output_features for consistency checks."""
         raise NotImplementedError
 
     @abstractmethod
     def forward(self, query: Tensor, key: Tensor, value: Tensor) -> Tensor:
         """
+        Compute the output from query, key, and value input tensors.
+
         This accepts the three Tensors query (q), key (k), and value (v) of shape (*, D), where D is q_features,
         k_features or v_features respectively and returns a Tensor of shape (*, S, O), where S is the size of the
         second to last dimension of q and O is output_features

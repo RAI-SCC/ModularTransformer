@@ -1,3 +1,4 @@
+"""Base modules."""
 import copy
 
 from torch import Tensor
@@ -14,13 +15,14 @@ __all__ = [
 
 class Transformer(Module):
     """
-    Provides the structure for an encoder-decoder architecture
+    Provides the structure for an encoder-decoder architecture.
 
     In this variant the output of the final encoder layer is used as hidden state for each decoder layer, like in a
     typical Transformer architecture.
     It also deepcopies the provided layers to generate multilayer architectures and provides basic consistency checks.
 
-    Parameters:
+    Parameters
+    ----------
         :param encoder_layer TransformerEncoderLayer: the encoder layer
         :param decoder_layer TransformerDecoderLayer: the decoder layer
         :param output_module OutputModule: output module to apply to the final decoder output
@@ -49,7 +51,7 @@ class Transformer(Module):
         self._check_validity()
 
     def _check_validity(self) -> None:
-        """Checks consistency of the components"""
+        """Check consistency of the components."""
         assert self.encoder_layers[-1].output_features == self.decoder_layers[0].other_features
         assert (
             self.decoder_layers[-1].output_features == self.output_module.attention_output_features
@@ -64,17 +66,21 @@ class Transformer(Module):
 
     @property
     def encoder_features(self) -> int:
+        """Encoder input dimension."""
         return self.encoder_layers[0].input_features
 
     @property
     def decoder_features(self) -> int:
+        """Decoder input dimension."""
         return self.decoder_layers[0].input_features
 
     @property
     def output_features(self) -> int:
+        """Output dimension."""
         return self.output_module.output_features
 
     def forward(self, encoder_input: Tensor, decoder_input: Tensor) -> Tensor:
+        """Perform forward pass through the entire Transformer."""
         x = encoder_input
         for layer in self.encoder_layers:
             x = layer(x)
@@ -90,13 +96,14 @@ class Transformer(Module):
 
 class ParallelTransformer(Transformer):
     """
-    Provides the structure for an encoder-decoder architecture
+    Provides the structure for an encoder-decoder architecture.
 
     In this variant the output each encoder layer is used as hidden state for each matching decoder layer, like in a
     typical RNN architecture.
     It also deepcopies the provided layers to generate multilayer architectures and provides basic consistency checks.
 
-    Parameters:
+    Parameters
+    ----------
         :param encoder_layer TransformerEncoderLayer: the encoder layer
         :param decoder_layer TransformerDecoderLayer: the decoder layer
         :param output_module OutputModule: output module to apply to the final decoder output
@@ -119,6 +126,7 @@ class ParallelTransformer(Transformer):
         )
 
     def forward(self, encoder_input: Tensor, decoder_input: Tensor) -> Tensor:
+        """Perform forward pass through the entire ParallelTransformer."""
         x = encoder_input
         y = decoder_input
         for encoder_layer, decoder_layer in zip(self.encoder_layers, self.decoder_layers):

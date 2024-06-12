@@ -1,3 +1,4 @@
+"""Dot product attention."""
 from math import sqrt
 from typing import Optional, Union
 
@@ -17,9 +18,10 @@ __all__ = [
 
 class DotProductAttention(AttentionModule):
     """
-    Classical dot product attention mechanism (Vaswani et al 17) with optional mask
+    Classical dot product attention mechanism (Vaswani et al 17) with optional mask.
 
     Parameters
+    ----------
         :param q_features int: number of features of the q- and k-component (i.e. first and second) input
         :param v_features Optional[int]: number of features of the v-component (i.e. third) input (default: q_features)
         :param mask Optional[AttentionMatrixMask]: mask for masked attention (default: None)
@@ -43,9 +45,11 @@ class DotProductAttention(AttentionModule):
 
     @property
     def output_features(self) -> int:
+        """Return output dimension."""
         return self.v_features
 
     def forward(self, query: Tensor, key: Tensor, value: Tensor) -> Tensor:
+        """Compute layer forward pass."""
         scale = query.shape[-1]
         attention_matrix = softmax(
             torch.div(torch.matmul(query, key.transpose(-1, -2)), sqrt(scale)), dim=-1
@@ -59,11 +63,12 @@ class DotProductAttention(AttentionModule):
 
 class MaskedDotProductAttention(DotProductAttention):
     """
-    Alternate version of `DotProductAttention`
+    Alternate version of `DotProductAttention`.
 
     The only difference to `DotProductAttention` is that `TriangularMask` is used as default for ease of use
 
     Parameters
+    ----------
         :param q_features int: number of features of the q- and k-component (i.e. first and second) input
         :param v_features Optional[int]: number of features of the v-component (i.e. third) input (default: q_features)
         :param mask Optional[AttentionMatrixMask]: mask for masked attention (default: TriangularMask())

@@ -1,3 +1,4 @@
+"""Head reduction base classes."""
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -12,7 +13,7 @@ __all__ = [
 
 class HeadReduction(Module, ABC):
     """
-    Abstract base class for all `HeadReduction`s
+    Abstract base class for all `HeadReduction`s.
 
     Responsible for combining the heads of multihead attention. The vast majority of models us ConcatHeads, but also
     allows to implement layers with head interaction.
@@ -46,18 +47,20 @@ class HeadReduction(Module, ABC):
         self._check_validity()
 
     def _check_validity(self) -> None:
-        """Checks the consistency of the module. Should be implemented by subclasses, if needed."""
+        """Check the consistency of the module. Should be implemented by subclasses, if needed."""
         pass
 
     @property
     @abstractmethod
     def attention_output_features(self) -> int:
-        """Provides the number of output_features for consistency checks"""
+        """Provide the number of output_features for consistency checks."""
         raise NotImplementedError
 
     @abstractmethod
     def forward(self, input_: Tensor) -> Tensor:
         """
+        Compute module forward pass.
+
         This accepts a Tensor of shape (H, *, S, A) and should output a Tensor of shape (*, S, F), where S is the
         input sequence length, A is self.attention_dimension, H is self.nhead, and F is self.attention_output_features
         """

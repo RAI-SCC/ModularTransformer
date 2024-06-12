@@ -1,3 +1,4 @@
+"""Taylor attention layer modules."""
 import copy
 
 import torch
@@ -12,6 +13,8 @@ from modular_transformer.layers.attention_modules.output_modules import LinearOu
 
 
 class QuadraticScalarProductAttentionModule(Module):
+    """Pending."""
+
     def __init__(
         self,
         input_features: int,
@@ -26,6 +29,7 @@ class QuadraticScalarProductAttentionModule(Module):
         self.linear = torch.nn.Linear(self.sequence_length, self.output_features)
 
     def forward(self, input_: Tensor) -> Tensor:
+        """Forward pass through the module."""
         _batch_size, _sequence_length, _dimension = input_.shape
         assert _dimension == self.input_features
         assert _sequence_length == self.sequence_length
@@ -42,6 +46,8 @@ class QuadraticScalarProductAttentionModule(Module):
 
 
 class QuadraticAttentionModule(Module):
+    """Pending."""
+
     def __init__(
         self,
         input_features: int,
@@ -60,6 +66,7 @@ class QuadraticAttentionModule(Module):
         )
 
     def forward(self, input_: Tensor) -> Tensor:
+        """Forward pass through the module."""
         _batch_size, _sequence_length, _dimension = input_.shape
         assert _dimension == self.input_features
 
@@ -82,6 +89,8 @@ class QuadraticAttentionModule(Module):
 
 
 class TaylorSelfAttentionModule(Module):
+    """Pending."""
+
     def __init__(
         self,
         input_features: int,
@@ -132,13 +141,16 @@ class TaylorSelfAttentionModule(Module):
 
     @property
     def input_features(self) -> int:
+        """Pending."""
         return self.attention_mechanisms[0].input_features
 
     @property
     def output_features(self) -> int:
+        """Pending."""
         return self.output_module.output_features
 
     def forward(self, input_: Tensor) -> Tensor:
+        """Forward pass through the module."""
         head_results = []
         for layer in self.attention_mechanisms:
             head_results.append(layer(input_))
@@ -149,6 +161,8 @@ class TaylorSelfAttentionModule(Module):
 
 
 class QuadraticCrossAttentionModule(Module):
+    """Pending."""
+
     def __init__(
         self,
         input_features: int,
@@ -176,6 +190,7 @@ class QuadraticCrossAttentionModule(Module):
         self.linear = torch.nn.Linear(in_dim_other, self.output_features * self.sequence_length)
 
     def forward(self, input_: Tensor, other: Tensor) -> Tensor:
+        """Forward pass through the module."""
         _batch_size, _sequence_length_in, _dimension = input_.shape
         assert _batch_size == other.shape[0]
         assert _dimension == self.input_features
@@ -200,6 +215,8 @@ class QuadraticCrossAttentionModule(Module):
 
 
 class TaylorCrossAttentionModule(Module):
+    """Pending."""
+
     def __init__(
         self,
         input_features: int,
@@ -246,17 +263,21 @@ class TaylorCrossAttentionModule(Module):
 
     @property
     def input_features(self) -> int:
+        """Pending."""
         return self.attention_mechanisms[0].input_features
 
     @property
     def other_features(self) -> int:
+        """Pending."""
         return self.attention_mechanisms[0].other_features
 
     @property
     def output_features(self) -> int:
+        """Pending."""
         return self.output_module.output_features
 
     def forward(self, input_: Tensor, other: Tensor) -> Tensor:
+        """Forward pass through the module."""
         head_results = []
         for layer in self.attention_mechanisms:
             head_results.append(layer(input_, other))

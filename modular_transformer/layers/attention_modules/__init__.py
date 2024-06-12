@@ -1,3 +1,4 @@
+"""Attention modules."""
 from .base import CrossAttentionModule, SelfAttentionModule
 from .classical import ClassicalCrossAttentionModule, ClassicalSelfAttentionModule
 

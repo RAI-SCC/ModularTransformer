@@ -1,21 +1,24 @@
+"""Taylor transformer layer modules."""
 from typing import Callable
 
 import torch
 from torch import Tensor
 from torch.nn import ReLU
 
-from modular_transformer.layers import TransformerDecoderLayer, TransformerEncoderLayer
-from modular_transformer.layers.attention_modules.attention_mechanisms.masking import (
+from . import TransformerDecoderLayer, TransformerEncoderLayer
+from .attention_modules.attention_mechanisms.masking import (
     AttentionMatrixMask,
 )
-from modular_transformer.layers.attention_modules.output_modules import DoubleLinearOutputModule
-from modular_transformer.layers.attention_modules.taylor import (
+from .attention_modules.output_modules import DoubleLinearOutputModule
+from .attention_modules.taylor import (
     TaylorCrossAttentionModule,
     TaylorSelfAttentionModule,
 )
 
 
 class TaylorTransformerEncoderLayer(TransformerEncoderLayer):
+    """Transformer encoder layer using taylor layers instead of linear layers."""
+
     def __init__(
         self,
         input_features: int,
@@ -65,6 +68,8 @@ class TaylorTransformerEncoderLayer(TransformerEncoderLayer):
 
 
 class TaylorTransformerDecoderLayer(TransformerDecoderLayer):
+    """Transformer decoder layer using taylor layers instead of linear layers."""
+
     def __init__(
         self,
         input_features: int,

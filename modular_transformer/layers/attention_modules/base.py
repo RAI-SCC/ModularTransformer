@@ -1,3 +1,4 @@
+"""Base classes for attention modules."""
 import copy
 
 import torch
@@ -17,12 +18,13 @@ __all__ = [
 
 class SelfAttentionModule(Module):
     """
-    Provides the basic structure for a self attention module
+    Provides the basic structure for a self attention module.
 
     Combines a `QKVmap`, `AttentionModule`, `HeadReduction`, and `OutputModule` into a self attention module.
     Also handles head creation and consistency checks between the components.
 
-    Parameters:
+    Parameters
+    ----------
         :param qkv_mapping QKVmap: mapping from input to query, key, and value
         :param attention_mechanism AttentionModule: performs attention with query, key, and value
         :param head_reduction HeadReduction: recombines the results of the heads
@@ -51,14 +53,16 @@ class SelfAttentionModule(Module):
 
     @property
     def input_features(self) -> int:
+        """Returns input dimension."""
         return self.qkv_mappings[0].input_features
 
     @property
     def output_features(self) -> int:
+        """Returns output dimension."""
         return self.output_module.output_features
 
     def _check_validity(self):
-        """Checks consistency of the components"""
+        """Check consistency of the components."""
         assert self.qkv_mappings[0].q_features == self.attention_mechanisms[0].q_features
         assert self.head_reduction.nhead == self._nhead
         assert (
@@ -71,8 +75,9 @@ class SelfAttentionModule(Module):
 
     def forward(self, input_: Tensor) -> Tensor:
         """
-        Accepts a Tensor of shape (*, S, I), where S is a sequence length and I the input_features, and returns a Tensor
-        of shape (*, S, O), where O are the output_features
+        Compute module forward pass.
+
+        Accept a Tensor of shape (*, S, I), where S is a sequence length and I the input_features, and returns a Tensor of shape (*, S, O), where O are the output_features.
         """
         head_results = []
         for qkv_mapping, attention_mechanism in zip(self.qkv_mappings, self.attention_mechanisms):
@@ -86,12 +91,13 @@ class SelfAttentionModule(Module):
 
 class CrossAttentionModule(Module):
     """
-    Provides the basic structure for a self attention module
+    Provides the basic structure for a self attention module.
 
     Combines a `QKmap`, `KVmap`, `AttentionModule`, `HeadReduction`, and `OutputModule` into a cross attention module.
     Also handles head creation and consistency checks between the components.
 
-    Parameters:
+    Parameters
+    ----------
         :param q_mapping Qmap: mapping from input_ to query
         :param kv_mapping KVmap: mapping from other to key and value
         :param attention_mechanism AttentionModule: performs attention with query, key, and value
@@ -121,18 +127,21 @@ class CrossAttentionModule(Module):
 
     @property
     def input_features(self) -> int:
+        """Returns query dimension."""
         return self.q_mappings[0].input_features
 
     @property
     def other_features(self) -> int:
+        """Returns keyvalue dimension."""
         return self.kv_mappings[0].input_features
 
     @property
     def output_features(self) -> int:
+        """Returns output dimension."""
         return self.output_module.output_features
 
     def _check_validity(self):
-        """Checks consistency of the components"""
+        """Check consistency of the components."""
         assert self.q_mappings[0].q_features == self.attention_mechanism.q_features
         assert self.kv_mappings[0].k_features == self.attention_mechanism.k_features
         assert self.kv_mappings[0].v_features == self.attention_mechanism.v_features
@@ -145,6 +154,8 @@ class CrossAttentionModule(Module):
 
     def forward(self, input_: Tensor, other: Tensor) -> Tensor:
         """
+        Compute module forward pass.
+
         Accepts Tensors input_ of shape (*, S, I) and other of shape (*, S, I*), where S is a sequence length,I the
         features ot input_, and I* the features of other, and returns a Tensor of shape (*, S, O), where O are the
         output_features

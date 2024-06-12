@@ -1,3 +1,4 @@
+"""Taylor modules."""
 from typing import Callable
 
 import torch
@@ -17,6 +18,8 @@ from modular_transformer.layers.taylor import (
 
 
 class TaylorTransformer(Transformer):
+    """Taylor transformer model, where the encoder layers and optionally the decoder layers are replaced by taylor layers."""
+
     def __init__(
         self,
         input_features: int,
@@ -111,6 +114,7 @@ class TaylorTransformer(Transformer):
         )
 
     def forward(self, encoder_input: Tensor, decoder_input: Tensor) -> Tensor:
+        """Forward pass through entire model."""
         x = encoder_input
         for layer in self.encoder_layers:
             x = layer(x)
