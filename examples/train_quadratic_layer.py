@@ -15,10 +15,10 @@ from examples.util import (
     save_model,
     train_one_epoch,
 )
-from modular_transformer.classical import ClassicalTransformer
+from modular_transformer.taylor import TaylorTransformer
 
 
-def train_transformer(
+def train_quadratic_transformer(
     input_length: int,
     output_length: int,
     dataset: Dataset,
@@ -28,10 +28,12 @@ def train_transformer(
     plot: bool = True,
 ):
     device = get_device()
-    model = ClassicalTransformer(
-        input_features=3,
+    model = TaylorTransformer(
+        input_features=1,
         output_features=1,
-        d_model=16,
+        sequence_length=input_length,
+        sequence_length_decoder=output_length,
+        d_model=1,
         nhead=1,
         dim_feedforward=200,
         num_encoder_layers=1,
@@ -44,7 +46,7 @@ def train_transformer(
         input_length,
         output_length,
         batch_size=20,
-        positional_encoding=True,
+        positional_encoding=False,
         device=device,
     )
 
@@ -53,7 +55,7 @@ def train_transformer(
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.3)
     print(optimizer)
 
-    mses_train = []
+    losses_train = []
     mses_test_mean = []
     mses_test_variance = []
     maes_test_mean = []
@@ -72,7 +74,7 @@ def train_transformer(
             train_loader,
             use_labels=True,
         )
-        mses_train.append(avg_loss)
+        losses_train.append(avg_loss)
 
         mean_mse, variance_mse, mean_mae, variance_mae, mean_mape, variance_mape = evaluate_model(
             model,
@@ -87,31 +89,30 @@ def train_transformer(
         mapes_test_variance.append(variance_mape)
 
         print(f"Train {loss_function}: {avg_loss:.5f}\nTest MSE:  {mean_mse:.5f}")
-    duration = datetime.now() - start_time
 
-    save_model(model, "transformer", dataset, input_length, output_length, loss_function)
+    save_model(model, "taylor-transformer", dataset, input_length, output_length, loss_function)
 
     if plot:
-        plt.plot(mses_train, label="train mse")
-        plt.plot(mses_test_mean, label="test mse")
+        plt.plot(losses_train, label=f"train {loss_function}")
+        plt.plot(mses_test_mean, label=f"test {loss_function}")
         plt.title("losses")
         plt.legend()
         plt.show()
 
-        plt.plot(mses_test_variance, label="test mse variance")
+        plt.plot(mses_test_variance, label="q test mse variance")
         plt.title("q mse variance")
         plt.legend()
         plt.show()
 
         plot_samples(model, test_loader, use_labels=True, num_samples=2, title="test")
         plot_samples(model, train_loader, use_labels=True, num_samples=1, title="train")
-
     num_params = sum(p.numel() for p in model.parameters())
     print(f"Number of parameters: {num_params}")
+    duration = datetime.now() - start_time
     print(f"Duration: {duration}")
 
     add_to_results(
-        "transformer",
+        "taylor-transformer",
         dataset,
         input_length,
         output_length,
@@ -121,7 +122,7 @@ def train_transformer(
         learning_rate,
         num_params,
         duration.total_seconds(),
-        mses_train,
+        losses_train,
         mses_test_mean,
         mses_test_variance,
         maes_test_mean,
@@ -134,11 +135,10 @@ def train_transformer(
 if __name__ == "__main__":
     _input_length = 12
     _output_length = 24
-    _epochs = 5
-    _dataset: Dataset = "etth2"
-    # _dataset: Dataset = "electricity-hourly"
-    _loss_function: LossFunction = "mae"
-    train_transformer(
+    _epochs = 100
+    _dataset: Dataset = "electricity-hourly"
+    _loss_function: LossFunction = "mse"
+    train_quadratic_transformer(
         _input_length,
         _output_length,
         _dataset,
