@@ -1,8 +1,9 @@
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.nn import functional as f
 
-#self.linear = Linear(self.attention_output_features, self.output_features, bias=bias, **factory_kwargs)
+
+# self.linear = Linear(self.attention_output_features, self.output_features, bias=bias, **factory_kwargs)
 class GaussianWeightMCDLayer(torch.nn.Module):
     def __init__(self, input_size, output_size, bias, sigma, is_trainable_sigma, **factory_kwargs):
         super().__init__()
@@ -30,9 +31,13 @@ class GaussianWeightMCDLayer(torch.nn.Module):
             if self.bias:
                 masked_b = biases + (self.sigma_b * epsilon_b)
         else:
-            masked_w = weights + ((torch.ones(self.lin_layer.weight.shape) * self.sigma) * epsilon_w)
+            masked_w = weights + (
+                (torch.ones(self.lin_layer.weight.shape) * self.sigma) * epsilon_w
+            )
             if self.bias:
-                masked_b = biases + ((torch.ones(self.lin_layer.bias.shape) * self.sigma) * epsilon_b)
+                masked_b = biases + (
+                    (torch.ones(self.lin_layer.bias.shape) * self.sigma) * epsilon_b
+                )
         if self.bias:
             return f.linear(x, masked_w, masked_b)
         else:
@@ -42,7 +47,7 @@ class GaussianWeightMCDLayer(torch.nn.Module):
 class GaussianNodeMCDLayer(torch.nn.Module):
     def __init__(self, input_size, output_size, bias, sigma, **factory_kwargs):
         super().__init__()
-        self.lin_layer = nn.Linear(input_size, output_size,  bias=bias, **factory_kwargs)
+        self.lin_layer = nn.Linear(input_size, output_size, bias=bias, **factory_kwargs)
         self.sigma = sigma
         self.bias = bias
 
@@ -64,11 +69,13 @@ class BernoulliWeightMCDLayer(torch.nn.Module):
 
     def forward(self, x):
         weights = self.lin_layer.weight
-        bernoulli_mask_w = torch.where(torch.rand(size=weights.shape) > self.dropout_rate, 1., 0.)
+        bernoulli_mask_w = torch.where(torch.rand(size=weights.shape) > self.dropout_rate, 1.0, 0.0)
         masked_w = weights * bernoulli_mask_w
         if self.bias:
             biases = self.lin_layer.bias
-            bernoulli_mask_b = torch.where(torch.rand(size=biases.shape) > self.dropout_rate, 1., 0.)
+            bernoulli_mask_b = torch.where(
+                torch.rand(size=biases.shape) > self.dropout_rate, 1.0, 0.0
+            )
             masked_b = biases * bernoulli_mask_b
             return f.linear(x, masked_w, masked_b)
         else:
@@ -83,7 +90,7 @@ class BernoulliNodeMCDLayer(torch.nn.Module):
         self.bias = bias
 
     def forward(self, x):
-        x = x * (torch.where(torch.rand(size=x.shape) > self.dropout_rate, 1., 0.))
+        x = x * (torch.where(torch.rand(size=x.shape) > self.dropout_rate, 1.0, 0.0))
         weights = self.lin_layer.weight
         if self.bias:
             biases = self.lin_layer.bias

@@ -1,12 +1,13 @@
+import math
 from datetime import datetime
+
+import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
-from examples.data import get_data_electricity, get_loader, get_loader_overfit
-from modular_transformer.classical_mc import ClassicalMCDTransformer
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-import math
-import pickle
+
+from examples.data import get_data_electricity, get_loader
+from modular_transformer.classical_mc import ClassicalMCDTransformer
 
 
 def train_one_epoch(
@@ -14,7 +15,7 @@ def train_one_epoch(
     loss_fn: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
     training_loader: DataLoader,
-    sample_num=5
+    sample_num=5,
 ):
     running_loss = 0.0
     len_data = len(training_loader)
@@ -30,7 +31,7 @@ def train_one_epoch(
         # other = torch.range(0, inputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / inputs.shape[1]
         # assert inputs.shape == (size_batch, input_length, 1)
         labels_masked = labels.clone()
-        labels_masked[:, :, 0] = 0.
+        labels_masked[:, :, 0] = 0.0
         outputs = []
         s = 0
         while s < sample_num:
@@ -58,6 +59,7 @@ def plot_samples(model: ClassicalMCDTransformer, test_loader: DataLoader, sample
     n = 0
 
     import matplotlib.pyplot as plt
+
     for vinputs, vlabels in test_loader:
         # vinputs = vinputs.unsqueeze(-1)
 
@@ -67,7 +69,7 @@ def plot_samples(model: ClassicalMCDTransformer, test_loader: DataLoader, sample
         # other = torch.range(0, vinputs.shape[1] - 1).unsqueeze(0).unsqueeze(-1).repeat(size_batch, 1, 1) / vinputs.shape[1]
         # assert vinputs.shape == (size_batch, input_length, 1)
         vlabels_masked = vlabels.clone()
-        vlabels_masked[:, :, 0] = 0.
+        vlabels_masked[:, :, 0] = 0.0
         vout_list = []
         i = 0
         while i < sample_num:
@@ -75,7 +77,7 @@ def plot_samples(model: ClassicalMCDTransformer, test_loader: DataLoader, sample
             i += 1
         voutputs = torch.mean(torch.stack(vout_list), dim=0)
         voutput_std = torch.squeeze(torch.std(torch.stack(vout_list), dim=0))
-        #voutputs = model(vinputs, vlabels_masked)
+        # voutputs = model(vinputs, vlabels_masked)
         v_inputs = vinputs[:, :, 0]
         v_outputs = voutputs[:, :, 0]
         v_labels = vlabels[:, :, 0]
@@ -89,15 +91,31 @@ def plot_samples(model: ClassicalMCDTransformer, test_loader: DataLoader, sample
         for i in range(v_labels.shape[0]):
             if n > 1:
                 return
-            plt.plot(v_inputs[i, :].numpy(), color='blue', label="inputs")
+            plt.plot(v_inputs[i, :].numpy(), color="blue", label="inputs")
             # plot outputs and ground truth behind input sequence
-            plt.plot(range(input_length, input_length + output_length), v_outputs[i, :].numpy(), color='orange', label="outputs")
-            plt.plot(range(input_length, input_length + output_length), v_labels[i, :].numpy(), color='green', label="ground truth")
+            plt.plot(
+                range(input_length, input_length + output_length),
+                v_outputs[i, :].numpy(),
+                color="orange",
+                label="outputs",
+            )
+            plt.plot(
+                range(input_length, input_length + output_length),
+                v_labels[i, :].numpy(),
+                color="green",
+                label="ground truth",
+            )
             plt.legend()
             plt.xticks(range(0, input_length + output_length, 2))
-            plt.fill_between(range(input_length, input_length + output_length), (torch.add(v_outputs[i, :], voutput_std[i, :], alpha=1)).numpy(), (torch.add(v_outputs[i, :], voutput_std[i, :], alpha=-1)).numpy(), color='orange', alpha=.1)
-            #plt.plot(range(input_length, input_length + output_length), (torch.add(v_outputs[i, :], voutput_std[i, :], alpha=1)).numpy(), color='orange', alpha=.3, label="upper conf bound")
-            #plt.plot(range(input_length, input_length + output_length), (torch.add(v_outputs[i, :], voutput_std[i, :], alpha=-1)).numpy(), color='orange', alpha=.3, label="lower conf bound")
+            plt.fill_between(
+                range(input_length, input_length + output_length),
+                (torch.add(v_outputs[i, :], voutput_std[i, :], alpha=1)).numpy(),
+                (torch.add(v_outputs[i, :], voutput_std[i, :], alpha=-1)).numpy(),
+                color="orange",
+                alpha=0.1,
+            )
+            # plt.plot(range(input_length, input_length + output_length), (torch.add(v_outputs[i, :], voutput_std[i, :], alpha=1)).numpy(), color='orange', alpha=.3, label="upper conf bound")
+            # plt.plot(range(input_length, input_length + output_length), (torch.add(v_outputs[i, :], voutput_std[i, :], alpha=-1)).numpy(), color='orange', alpha=.3, label="lower conf bound")
             plt.show()
             # time.sleep(5)
             n += 1
@@ -147,7 +165,7 @@ model = ClassicalMCDTransformer(
     weight_drop=True,
     rate=0.5,
     std_dev=0.5,
-    istrainablesigma=True
+    istrainablesigma=True,
 )
 
 print(model)
@@ -207,11 +225,6 @@ for epoch in range(epochs):
     # plot_samples(model, test_loader)
 
     print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
-
-dbfile = open('model_trainable_sigma', 'ab')
-# source, destination
-pickle.dump(model, dbfile)
-dbfile.close()
 
 plt.plot([math.log(x) for x in mses_train], label="train mse")
 plt.plot([math.log(x) for x in mses_test], label="test mse")

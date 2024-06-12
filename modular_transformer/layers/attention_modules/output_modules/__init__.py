@@ -1,7 +1,7 @@
 from .base import OutputModule
 from .linear import DoubleLinearOutputModule, LinearOutputModule
+from .linear_mcd import DoubleLinearMCDOutputModule, LinearMCDOutputModule
 from .none import NoModule
-from .linear_mcd import LinearMCDOutputModule, DoubleLinearMCDOutputModule
 
 __all__ = [
     "OutputModule",
