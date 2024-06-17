@@ -25,6 +25,7 @@ exclude_patterns = []
 
 autoapi_dirs = ["../../modular_transformer"]
 autoapi_python_class_content = "init"
+# add_module_names = False
 
 
 # -- Options for HTML output -------------------------------------------------
