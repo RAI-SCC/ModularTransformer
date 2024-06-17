@@ -13,11 +13,11 @@ The ``ModularTransformer`` makes it easier to explore this space for manual expe
    This project is under active development. For any issues, feature requests, or contributions, visit the project `GitHub page`_
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Contents:
 
-    install
-    usage
+   install
+   usage
 
 .. Links
 .. _GitHub page: https://github.com/RAI-SCC/ModularTransformer
