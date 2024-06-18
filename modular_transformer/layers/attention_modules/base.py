@@ -20,7 +20,7 @@ class SelfAttentionModule(Module):
     """
     Provides the basic structure for a self attention module.
 
-    Combines a `QKVmap`, `AttentionModule`, `HeadReduction`, and `OutputModule` into a self attention module.
+    Combines a ``QKVmap``, ``AttentionModule``, ``HeadReduction``, and ``OutputModule`` into a self attention module.
     Also handles head creation and consistency checks between the components.
 
     Parameters
@@ -73,7 +73,7 @@ class SelfAttentionModule(Module):
             == self.output_module.attention_output_features
         )
 
-    def forward(self, input_: Tensor) -> Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         """
         Compute module forward pass.
 
@@ -81,7 +81,7 @@ class SelfAttentionModule(Module):
         """
         head_results = []
         for qkv_mapping, attention_mechanism in zip(self.qkv_mappings, self.attention_mechanisms):
-            q, k, v = qkv_mapping(input_)
+            q, k, v = qkv_mapping(x)
             head_results.append(attention_mechanism(q, k, v))
 
         attention_result = torch.stack(head_results)
@@ -93,12 +93,12 @@ class CrossAttentionModule(Module):
     """
     Provides the basic structure for a self attention module.
 
-    Combines a `QKmap`, `KVmap`, `AttentionModule`, `HeadReduction`, and `OutputModule` into a cross attention module.
+    Combines a ``QKmap``, ``KVmap``, ``AttentionModule``, ``HeadReduction``, and ``OutputModule`` into a cross attention module.
     Also handles head creation and consistency checks between the components.
 
     Parameters
     ----------
-        :param q_mapping Qmap: mapping from input_ to query
+        :param q_mapping Qmap: mapping from x to query
         :param kv_mapping KVmap: mapping from other to key and value
         :param attention_mechanism AttentionModule: performs attention with query, key, and value
         :param head_reduction HeadReduction: recombines the results of the heads
@@ -152,17 +152,17 @@ class CrossAttentionModule(Module):
             == self.output_module.attention_output_features
         )
 
-    def forward(self, input_: Tensor, other: Tensor) -> Tensor:
+    def forward(self, x: Tensor, other: Tensor) -> Tensor:
         """
         Compute module forward pass.
 
-        Accepts Tensors input_ of shape (*, S, I) and other of shape (*, S, I*), where S is a sequence length,I the
-        features ot input_, and I* the features of other, and returns a Tensor of shape (*, S, O), where O are the
+        Accepts Tensors x of shape (*, S, I) and other of shape (*, S, I*), where S is a sequence length,I the
+        features ot x, and I* the features of other, and returns a Tensor of shape (*, S, O), where O are the
         output_features
         """
         head_results = []
         for q_mapping, kv_mapping in zip(self.q_mappings, self.kv_mappings):
-            q = q_mapping(input_)
+            q = q_mapping(x)
             k, v = kv_mapping(other)
             head_results.append(self.attention_mechanism(q, k, v))
 

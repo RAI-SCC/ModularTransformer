@@ -8,10 +8,10 @@ __all__ = ["AttentionMatrixMask"]
 
 class AttentionMatrixMask(ABC):
     """
-    Abstract base class for all `AttentionMatrixMask`s.
+    Abstract base class for all ``AttentionMatrixMask`` s.
 
-    `AttentionMatrixMask`s operate on a (possibly batched) two-dimensional attention matrix and proved a masked version
-    of it through th `apply_to` method.
+    ``AttentionMatrixMask`` s operate on a (possibly batched) two-dimensional attention matrix and proved a masked version
+    of it through th ``apply_to`` method.
     """
 
     @abstractmethod
