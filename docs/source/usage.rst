@@ -5,5 +5,5 @@ Usage
 
 .. code-block:: python
 
-   import modular_transformer as mot
+   import modular_transformer as motra
    # do stuff
