@@ -18,6 +18,8 @@ The ``ModularTransformer`` makes it easier to explore this space for manual expe
 
    install
    structure
+   classic
+   taylor
    usage
 
 .. Links
