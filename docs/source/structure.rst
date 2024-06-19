@@ -395,20 +395,3 @@ Unless otherwise specified all classes are available as ``Qmap``, ``KVmap``, and
       Additional arguments:
         activation Optional[Module or str]: output activation function (default: None)
         bias bool: If set to False, the layer will not learn an additive bias (default: True)
-  
-
-
-Installation
-============
-
-Inside a venv::
-
-    python -m venv <myvenv>
-    source <myvenv>/bin/activate
-    pip install -e .
-
-To run example an training::
-
-    just train-example
-
-You can run the ruff linter using ``ruff --fix`` and the ruff formatter using ``ruff format``.
