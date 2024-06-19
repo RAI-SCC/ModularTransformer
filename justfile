@@ -4,7 +4,7 @@ train-example:
     #!/usr/bin/env bash
     source venv/bin/activate
     set -euxo pipefail
-    python examples/train.py
+    python examples/taylor/train.py
 
 mypy:
     #!/usr/bin/env bash
