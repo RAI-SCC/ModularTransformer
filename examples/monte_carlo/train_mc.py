@@ -147,93 +147,94 @@ def evaluate_model(model, test_loader: DataLoader):
     return mse, mae
 
 
-input_length = 50
-output_length = 150
+if __name__ == "__main__":
+    input_length = 50
+    output_length = 150
 
-model = ClassicalMCDTransformer(
-    input_features=3,
-    output_features=1,
-    d_model=16,
-    nhead=1,
-    dim_feedforward=200,
-    num_encoder_layers=1,
-    num_decoder_layers=1,
-    final_activation=None,
-    layer_norm=True,
-    dropout=0.0,
-    gaussian=True,
-    weight_drop=True,
-    rate=0.5,
-    std_dev=0.5,
-    istrainablesigma=True,
-)
-
-print(model)
-print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
-
-epochs = 50
-batch_size = 20
-
-data_train, data_test = get_data_electricity()
-train_loader = get_loader(
-    data_train,
-    input_length=input_length,
-    output_length=output_length,
-    batch_size=batch_size,
-)
-test_loader = get_loader(
-    data_test,
-    input_length=input_length,
-    output_length=output_length,
-    batch_size=batch_size,
-    shuffle=False,
-)
-# train_loader = get_loader_overfit(
-#     data_train,
-#     input_length=input_length,
-#     output_length=output_length,
-#     batch_size=batch_size,
-# )
-# test_loader = train_loader
-
-learning_rate = 0.005
-# learning_rate = 0.001
-loss_fn = torch.nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-mses_train = []
-mses_test = []
-maes_test = []
-
-start_time = datetime.now()
-for epoch in range(epochs):
-    print(f"EPOCH {epoch}:")
-
-    model.train(True)
-    avg_loss = train_one_epoch(
-        model,
-        loss_fn,
-        optimizer,
-        train_loader,
+    model = ClassicalMCDTransformer(
+        input_features=3,
+        output_features=1,
+        d_model=16,
+        nhead=1,
+        dim_feedforward=200,
+        num_encoder_layers=1,
+        num_decoder_layers=1,
+        final_activation=None,
+        layer_norm=True,
+        dropout=0.0,
+        gaussian=True,
+        weight_drop=True,
+        rate=0.5,
+        std_dev=0.5,
+        istrainablesigma=True,
     )
-    mses_train.append(avg_loss)
 
-    mse_test, mae_test = evaluate_model(model, test_loader)
-    mses_test.append(mse_test)
-    maes_test.append(mae_test)
+    print(model)
+    print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
 
-    # plot_samples(model, test_loader)
+    epochs = 50
+    batch_size = 20
 
-    print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
+    data_train, data_test = get_data_electricity()
+    train_loader = get_loader(
+        data_train,
+        input_length=input_length,
+        output_length=output_length,
+        batch_size=batch_size,
+    )
+    test_loader = get_loader(
+        data_test,
+        input_length=input_length,
+        output_length=output_length,
+        batch_size=batch_size,
+        shuffle=False,
+    )
+    # train_loader = get_loader_overfit(
+    #     data_train,
+    #     input_length=input_length,
+    #     output_length=output_length,
+    #     batch_size=batch_size,
+    # )
+    # test_loader = train_loader
 
-plt.plot([math.log(x) for x in mses_train], label="train mse")
-plt.plot([math.log(x) for x in mses_test], label="test mse")
-plt.title("losses (log scale)")
-plt.show()
+    learning_rate = 0.005
+    # learning_rate = 0.001
+    loss_fn = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-plt.plot(mses_train, label="train mse")
-plt.plot(mses_test, label="test mse")
-plt.title("losses")
-plt.show()
+    mses_train = []
+    mses_test = []
+    maes_test = []
 
-plot_samples(model, test_loader)
+    start_time = datetime.now()
+    for epoch in range(epochs):
+        print(f"EPOCH {epoch}:")
+
+        model.train(True)
+        avg_loss = train_one_epoch(
+            model,
+            loss_fn,
+            optimizer,
+            train_loader,
+        )
+        mses_train.append(avg_loss)
+
+        mse_test, mae_test = evaluate_model(model, test_loader)
+        mses_test.append(mse_test)
+        maes_test.append(mae_test)
+
+        # plot_samples(model, test_loader)
+
+        print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
+
+    plt.plot([math.log(x) for x in mses_train], label="train mse")
+    plt.plot([math.log(x) for x in mses_test], label="test mse")
+    plt.title("losses (log scale)")
+    plt.show()
+
+    plt.plot(mses_train, label="train mse")
+    plt.plot(mses_test, label="test mse")
+    plt.title("losses")
+    plt.show()
+
+    plot_samples(model, test_loader)
