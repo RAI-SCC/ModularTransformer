@@ -1,5 +1,6 @@
 from .base import OutputModule
 from .linear import DoubleLinearOutputModule, LinearOutputModule
+from .linear_mcd import DoubleLinearMCDOutputModule, LinearMCDOutputModule
 from .none import NoModule
 
 __all__ = [
@@ -7,4 +8,6 @@ __all__ = [
     "LinearOutputModule",
     "DoubleLinearOutputModule",
     "NoModule",
+    "LinearMCDOutputModule",
+    "DoubleLinearMCDOutputModule",
 ]
