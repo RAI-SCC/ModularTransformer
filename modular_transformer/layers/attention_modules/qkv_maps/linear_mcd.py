@@ -63,7 +63,7 @@ class LinearMCDQmap(Qmap):
                 self.q_features,
                 bias=bias,
                 sigma=std_dev,
-                istrainablesigma=istrainablesigma,
+                is_trainable_sigma=istrainablesigma,
                 **factory_kwargs,
             )
         elif gaussian and not weight_drop:
@@ -144,7 +144,7 @@ class LinearMCDKVmap(KVmap):
                 total_output_features,
                 bias=bias,
                 sigma=std_dev,
-                istrainablesigma=istrainablesigma,
+                is_trainable_sigma=istrainablesigma,
                 **factory_kwargs,
             )
         elif gaussian and not weight_drop:
@@ -241,7 +241,7 @@ class LinearMCDQKVmap(QKVmap):
                 total_output_features,
                 bias=bias,
                 sigma=std_dev,
-                istrainablesigma=istrainablesigma,
+                is_trainable_sigma=istrainablesigma,
                 **factory_kwargs,
             )
         elif gaussian and not weight_drop:
