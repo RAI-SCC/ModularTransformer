@@ -5,7 +5,7 @@ from torch import Tensor
 from torch.nn import ReLU, Softmax
 
 from .base import Transformer
-from .layers import ClassicalTransformerDecoderLayer, ClassicalTransformerEncoderLayer
+from .layers import ClassicalMCDTransformerDecoderLayer, ClassicalMCDTransformerEncoderLayer
 from .layers.attention_modules.attention_mechanisms.masking import AttentionMatrixMask
 from .layers.attention_modules.output_modules import LinearMCDOutputModule
 
@@ -67,7 +67,7 @@ class ClassicalMCDTransformer(Transformer):
         hidden_features = hidden_features or input_features
         output_features = output_features or input_features
 
-        encoder_layer = ClassicalTransformerEncoderLayer(
+        encoder_layer = ClassicalMCDTransformerEncoderLayer(
             input_features=input_features,
             d_model=d_model,
             nhead=nhead,
@@ -78,10 +78,15 @@ class ClassicalMCDTransformer(Transformer):
             layer_norm=layer_norm,
             dropout=dropout,
             activation=inter_activation,
+            gaussian=gaussian,
+            weight_drop=weight_drop,
+            rate=rate,
+            std_dev=std_dev,
+            istrainablesigma=istrainablesigma,
             **factory_kwargs,
         )
 
-        decoder_layer = ClassicalTransformerDecoderLayer(
+        decoder_layer = ClassicalMCDTransformerDecoderLayer(
             input_features=input_features,
             other_features=hidden_features,
             attention_dimension=d_model,
@@ -93,6 +98,11 @@ class ClassicalMCDTransformer(Transformer):
             layer_norm=layer_norm,
             dropout=dropout,
             activation=inter_activation,
+            gaussian=gaussian,
+            weight_drop=weight_drop,
+            rate=rate,
+            std_dev=std_dev,
+            istrainablesigma=istrainablesigma,
             **factory_kwargs,
         )
         attention_output_features = decoder_layer.output_features
