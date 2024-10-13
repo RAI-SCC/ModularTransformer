@@ -8,7 +8,8 @@ from tqdm import tqdm
 
 from examples.data import get_data_electricity, get_loader
 from modular_transformer.classical_mc import ClassicalMCDTransformer
-
+import pickle
+from model_analysis import sigma_weight_plot, find_threshold, determine_prune_weights, plot_init_final_weights
 
 def train_one_epoch(
     model: torch.nn.Module,
@@ -164,15 +165,16 @@ if __name__ == "__main__":
         dropout=0.0,
         gaussian=True,
         weight_drop=True,
-        rate=0.5,
-        std_dev=0.5,
+        rate=0.2,
+        std_dev=1,
         istrainablesigma=True,
     )
 
-    print(model)
-    print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
+    init_model = dict(model.named_parameters())
+    #print(model)
+    #print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
 
-    epochs = 50
+    epochs = 2
     batch_size = 20
 
     data_train, data_test = get_data_electricity()
@@ -197,7 +199,7 @@ if __name__ == "__main__":
     # )
     # test_loader = train_loader
 
-    learning_rate = 0.005
+    learning_rate = 0.001
     # learning_rate = 0.001
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -227,6 +229,30 @@ if __name__ == "__main__":
 
         print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
 
+    #Analysis of Sigma values
+    for name, param in model.named_parameters():
+        if "sigma_w" in name:
+            base = name.removesuffix('sigma_w')
+            weight_layer_name = base + "lin_layer.weight"
+            weight_param = dict(model.named_parameters())[weight_layer_name]
+            sigma_weight_plot(weight_param, param, base)
+            threshold = find_threshold(param)
+            (final_weights_prune, initial_weights_prune, final_weights_remain, initial_weights_remain) = (
+                determine_prune_weights(init_model[weight_layer_name], weight_param, param, threshold))
+            plot_init_final_weights(final_weights_prune, initial_weights_prune, final_weights_remain,
+                                    initial_weights_remain, base)
+
+        elif "sigma_b" in name:
+            base = name.removesuffix('sigma_b')
+            weight_layer_name = base + "lin_layer.bias"
+            weight_param = dict(model.named_parameters())[weight_layer_name]
+            sigma_weight_plot(weight_param, param, (base + '-bias'))
+            threshold = find_threshold(param)
+            (final_weights_prune, initial_weights_prune, final_weights_remain, initial_weights_remain) = (
+                determine_prune_weights(init_model[weight_layer_name], weight_param, param, threshold))
+            plot_init_final_weights(final_weights_prune, initial_weights_prune, final_weights_remain,
+                                    initial_weights_remain, (base + '-bias'))
+
     plt.plot([math.log(x) for x in mses_train], label="train mse")
     plt.plot([math.log(x) for x in mses_test], label="test mse")
     plt.title("losses (log scale)")
@@ -238,3 +264,6 @@ if __name__ == "__main__":
     plt.show()
 
     plot_samples(model, test_loader)
+    modelfile = open('model', 'ab')
+    pickle.dump(model, modelfile)
+    modelfile.close()

@@ -1,5 +1,5 @@
 import torch
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 kit_green = (0, 150/255, 130/255)
 kit_blue = (70/255, 100/255, 170/255)
@@ -9,6 +9,7 @@ kit_blue_50 = (0.6373, 0.6961, 0.8333)
 kit_red_50 = (0.8176, 0.5667, 0.5686)
 
 def find_threshold(sigmas):
+    # Finds the threshold value for high vs low sigma values
     sorted_sigma, indices = torch.sort(torch.abs(torch.flatten(sigmas)))
     difference = sorted_sigma[1:] - sorted_sigma[:-1]
     thr = (sorted_sigma[torch.argmax(difference) + 1] - sorted_sigma[torch.argmax(difference)]) / 2 + sorted_sigma[
@@ -16,7 +17,8 @@ def find_threshold(sigmas):
     return thr
 
 
-def sigma_weight_plot(weights, sigmas):
+def sigma_weight_plot(weights, sigmas, base_name):
+    # Creates scatter plot for a layer's sigma values and weights
     final_weights = (torch.flatten(weights)).tolist()
     final_sigma = (torch.abs(torch.flatten(sigmas))).tolist()
 
@@ -37,7 +39,9 @@ def sigma_weight_plot(weights, sigmas):
     plt.ylabel("Weights", fontsize=18)
 
     # plt.show()
-    plt.savefig('sigma-values.png')
+    file_name = base_name + '-sigma-values.png'
+    plt.savefig(file_name)
+    #plt.show()
 
 def determine_prune_weights(init_weights, final_weights, final_sigmas, threshold):
     # param_list should contain only a single torch layer
@@ -55,9 +59,10 @@ def determine_prune_weights(init_weights, final_weights, final_sigmas, threshold
     final_weights_remain = [item for item in final_weights_remain if item != 0]
     initial_weights_remain = [item for item in initial_weights_remain if item != 0]
 
-    plot_init_final_weights(final_weights_prune, initial_weights_prune, final_weights_remain, initial_weights_remain)
+    return (final_weights_prune, initial_weights_prune, final_weights_remain, initial_weights_remain)
 
-def plot_init_final_weights(final_weights_prune, initial_weights_prune, final_weights_remain, initial_weights_remain):
+def plot_init_final_weights(final_weights_prune, initial_weights_prune, final_weights_remain,
+                            initial_weights_remain, base_name):
     x1 = initial_weights_prune
     y1 = final_weights_prune
     x2 = initial_weights_remain
@@ -92,5 +97,6 @@ def plot_init_final_weights(final_weights_prune, initial_weights_prune, final_we
                ncol=3,
                fontsize=12)
     plt.axis('square')
-    plt.show()
-    plt.savefig('weight-change.png')
+    #plt.show()
+    file_name = base_name + '-weight-change.png'
+    plt.savefig(file_name)
