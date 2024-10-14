@@ -170,11 +170,13 @@ if __name__ == "__main__":
         istrainablesigma=True,
     )
 
-    init_model = dict(model.named_parameters())
+    initmodelfile = open('init_model', 'ab')
+    pickle.dump(model, initmodelfile)
+    initmodelfile.close()
     #print(model)
     #print(f"Number of parameters: {sum(p.numel() for p in model.parameters())}")
 
-    epochs = 2
+    epochs = 8
     batch_size = 20
 
     data_train, data_test = get_data_electricity()
@@ -229,8 +231,16 @@ if __name__ == "__main__":
 
         print(f"Train MSE: {avg_loss:.5f}\nTest MSE:  {mse_test:.5f}")
 
+    modelfile = open('model', 'ab')
+    pickle.dump(model, modelfile)
+    modelfile.close()
+    with open('init_model', 'rb') as f:
+        init_model_file = pickle.load(f)
+    init_model = dict(init_model_file.named_parameters())
     #Analysis of Sigma values
     for name, param in model.named_parameters():
+        if "output_module.linear" in name:
+            continue
         if "sigma_w" in name:
             base = name.removesuffix('sigma_w')
             weight_layer_name = base + "lin_layer.weight"
@@ -264,6 +274,4 @@ if __name__ == "__main__":
     plt.show()
 
     plot_samples(model, test_loader)
-    modelfile = open('model', 'ab')
-    pickle.dump(model, modelfile)
-    modelfile.close()
+
